@@ -1,0 +1,22 @@
+{
+    "manifest_vesrion": 3,
+    "name": "Vocab Tracker",
+    "version": "0.1.0",
+    "action":{
+        "default_popup": "action/default_popup.html"
+    }, 
+    "description": "Track new vocab you find on the web",
+
+    "content_scripts": {
+        "js": ["content/content_views.js"],
+        "css": ["content/content_styles.css"]
+    },
+    "permissions": [
+        "activeTab",
+        "storage"
+    ],
+    "background":{
+        "service_worker": "service_worker.js"
+    },
+    "options_page": "options.html"
+}
