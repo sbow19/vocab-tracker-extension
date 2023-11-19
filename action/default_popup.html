@@ -26,7 +26,7 @@
 
             <div class="options-wrapper" id="options-wrapper">
                 <div class="options-button-inner">
-                    <button id="options-button">Options</button>
+                    <button class="vocab-button" id="options-button">Options</button>
                 <!-- add clickable image that links to new tab-->
                 </div>
             </div>
@@ -72,7 +72,7 @@
 
                     <div class="current-project-button-wrapper">
                         <div class="current-project-create-button-wrapper">
-                            <button class="vocab-button" id=""> Create New Project</button>
+                            <button class="vocab-button" id="current-project-create-button"> Create New Project</button>
             
                         </div>
 
@@ -153,7 +153,7 @@
                         </div>
 
                         <div class="translate-button-wrapper">
-                            <button>Translate</button>
+                            <button id="search-wrapper-translate-button">Translate</button>
                         </div>
 
                 
@@ -314,7 +314,7 @@
                         </div>
 
                         <div class="translation-popup-main-view-button-wrapper">
-                            <button class="vocab-button">Main Menu</button>
+                            <button class="vocab-button" id="translation-main-menu-button">Main Menu</button>
                         </div>
 
                     </div>
@@ -359,7 +359,67 @@
 
             <!--Add project add view-->
 
-            <section class="add-project-view-wrapper">
+            <section class="add-project-view-wrapper" id="add-project-view">
+                <div class="add-project-main-wrapper">
+                    <div class="add-project-title-wrapper">
+                        <span>Create New Project</span>
+                    </div>
+                    <div class="add-project-parameters-wrapper">
+                        <ul class="add-project-parameters-list">
+                            <li class="add-project-name-wrapper">
+                                <div class="add-project-name-title-wrapper">
+                                    <span>Project Name</span>
+                                </div>
+                                <div class="add-project-name-input-wrapper">
+                                    <input class="add-project-name-input" type="text">
+                                </div>
+                            </li>
+
+                            <li class="add-project-language-wrapper">
+                                <div class="add-project-language-title-wrapper">
+                                    <span>Default Language</span>
+                                </div>
+                                <div class="add-project-language-input-wrapper">
+                                    <select class="add-project-language-select"name="" id="">
+                                        <option value="">Spanish</option>
+                                        <option value="">English</option>
+                                    </select>
+                                </div>
+                            </li>
+
+                            <li class="add-project-tags-wrapper">
+                                <div class="add-project-tags-title-wrapper">
+                                    <span>Select Tags</span>
+                                </div>
+                                <div class="add-project-tags-chosen-wrapper">
+                                    <textarea placeholder="no tags" cols="10" rows="6"> </textarea>
+                                </div>
+                                <div class="add-project-tags-select-wrapper">
+                                    <div class="add-project-tags-dropdown-wrapper">
+                                        <select name="" id="">
+                                            <option value="">Spanish</option>
+                                            <option value="">Business</option>
+                                            <option value="">Crypto</option>
+                                        </select>
+                                    </div>
+                                    <div class="add-project-tags-add-wrapper">
+                                        <button class="vocab-button">
+                                            Add
+                                        </button>
+                                    </div>
+                                </div>
+                            </li>
+                            
+                        </ul>
+
+                    </div>
+                    <div class="add-project-add-button">
+                        <button class="vocab-button">Create Project</button>
+                    </div>
+                </div>
+                <div class="add-project-main-menu-wrapper">
+                    <button class="vocab-button" id="add-project-main-menu-button">Main Menu</button>
+                </div>
 
 
 

@@ -1,5 +1,5 @@
 {
-    "manifest_vesrion": 3,
+    "manifest_version": 3,
     "name": "Vocab Tracker",
     "version": "0.1.0",
     "action":{
@@ -7,10 +7,11 @@
     }, 
     "description": "Track new vocab you find on the web",
 
-    "content_scripts": {
+    "content_scripts": [{
+        "matches": ["<all_urls>"],
         "js": ["content/content_views.js"],
-        "css": ["content/content_styles.css"]
-    },
+        "css": ["content/translation_popup.css", "content/popup_bubble.css"]
+}],
     "permissions": [
         "activeTab",
         "storage"

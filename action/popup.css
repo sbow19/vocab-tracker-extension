@@ -26,6 +26,7 @@
     font-family: var(--custom-font-title);
 }
 
+
 /*Scrollbar styling*/
 
 ::-webkit-scrollbar{
@@ -414,7 +415,7 @@ h2.title {
     border: var(--placeholder-border);
     height:100%;
     width:100%;
-    display: flex;
+    display: none;
 }
 
 .result-view-content-wrapper{
@@ -542,3 +543,149 @@ height:100%;
 /**/
 
 /*Add project styling*/
+
+.add-project-view-wrapper{
+    display: none;
+    border:var(--placeholder-border);
+    height: 100%;
+    width:100%;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+    .add-project-main-wrapper{
+        display:flex;
+        border: var(--placeholder-border);
+        flex-direction: column;
+        height: 100%;
+        width:100%
+    }
+
+        .add-project-title-wrapper{
+            display:flex;
+            border:var(--placeholder-border);
+            justify-content: center;
+        }
+
+        .add-project-title-wrapper > span{
+            border: var(--placeholder-border);
+            padding-left: 10px;
+            padding-right: 10px;
+            border-radius: 5px;
+        }
+
+        .add-project-parameters-wrapper{
+            border: var(--placeholder-border);
+            height:100%;
+            width:100%
+        }
+
+        .add-project-parameters-list{
+            display:flex;
+            flex-direction: column;
+            list-style: none;
+            padding: 0;
+            margin:0;
+            height:100%;
+            width:100%;
+            border:var(--placeholder-border)
+        }
+            .add-project-name-wrapper{
+                flex:1;
+                display:flex;
+                border: var(--placeholder-border);
+            }
+                .add-project-name-title-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    flex:2;
+                }
+
+                .add-project-name-input-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: center;
+                    flex:7;
+                }
+
+            .add-project-language-wrapper{
+                flex:1;
+                display:flex;
+                border: var(--placeholder-border);
+            }
+
+                .add-project-language-title-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    flex:2;
+                }
+
+                .add-project-name-input{
+                    width:50%
+                }
+
+                .add-project-language-input-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: center;
+                    flex:7;
+                }
+
+                .add-project-language-select{
+                    width:25%
+                }
+
+            .add-project-tags-wrapper{
+                flex:2.5;
+                display:flex;
+                border: var(--placeholder-border);
+            }
+
+                .add-project-tags-title-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: center;
+                    align-items: center;
+                    flex:2;
+                }
+
+                .add-project-tags-chosen-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: center;
+                    flex:5;
+                }
+
+                .add-project-tags-select-wrapper{
+                    display:flex;
+                    border: var(--placeholder-border);
+                    flex-direction: column;
+                    justify-content: space-around;
+                    align-items: center;
+                    flex:2;
+
+                }
+                
+                .add-project-tags-wrapper textarea{
+                    resize: none;
+                }
+
+        .add-project-add-button{
+            border: var(--placeholder-border);
+            display: flex;
+            justify-content: center;
+        }
+
+.add-project-main-menu-wrapper{
+    border: var(--placeholder-border);
+}
