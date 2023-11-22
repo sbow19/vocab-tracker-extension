@@ -1,43 +1,36 @@
-//Injected Elements
-
 class Views {
 
     constructor(){
             
     }
-    
-    /*These properties set the location of views based on the cursor location*/
-    static xPos = null;
-    static yPos = null;
+    //Change the current view;
 
-    //This property sets the main view onto the super class
-    static currentView = "none";
     
+    xPos = null;
+    yPos = null;
+    currentView = "none";
+    
+    
+
     static changeView(newView){
-
-            //if the newView is set to none, because of some cancelling event (e.g.double click)
             if (newView === "none"){
-                Views.currentView.style.display = "none";
-                Views.currentView = "none";
+                this.currentView.style.display = "none";
 
-
-            //If the current view is none, then the newView is added.
-            }else if (Views.currentView === "none"){
-
-                newView = Views.viewPosition(newView);
-
-                Views.currentView = newView;
-                
-                Views.currentView.style.display = "flex";
-            } else {
-
-                Views.currentView.style.display = "none";
-                newView = Views.viewPosition(newView);
-                Views.currentView = newView;
-                Views.currentView.style.display = "flex";
+            }else{
+                this.currentView.style.display = "none";
+                this.currentView = newView;
+                Views.viewPosition(newView);
+                this.currentView.style.display = "flex";
             }
-
         }
+
+    //Set view on start up to bubble view but without display. Becomes target of ChangeView later
+        
+    static setView(view){
+
+        this.currentView = view
+
+        };
 
 
     static appendView(view){
@@ -51,8 +44,6 @@ class Views {
         view.style.position = "absolute"
         view.style.top = `${Views.yPos}px`
         view.style.left = `${Views.xPos}px`
-
-        return view;
 
     }
 
@@ -145,7 +136,7 @@ translationPopup.innerHTML = `
 
                     <div class="translation-input-output-wrapper-inner">
                         <div class="translation-input-text-wrapper">
-                            <textarea name="" id="translation-input" cols="50" rows="3" placeholder="Input language"></textarea>
+                            <textarea name="" id="" cols="50" rows="3" placeholder="Input language"></textarea>
                         </div>
                         <div class="translation-output-text-wrapper">
                             <textarea name="" id="translation-output" cols="50" rows="3" placeholder="Output language"></textarea>
@@ -197,56 +188,38 @@ translationPopup.innerHTML = `
 </div>`;
 
 const translationPopupObject = new TranslationView(translationPopup, {
-    input: "translation-input",
     output: "translation-output",
     language: "translation-parameter-language-set",
     project: "translation-parameter-project-set",
     saveButton: "translation-save"
 })
 
-//Resources Search
-
-async function resourceSearch(){
-
-    let popUpBubbleImage = document.getElementById(popupBubbleObject["elements"]["mainButton"]);
-
-    popUpBubbleImage.src = await chrome.runtime.getURL("assets/translation-icon.png");
-
-    console.log(popUpBubbleImage.src)
-
-
-}
-
-//Listener for selected text
-
-let selectionText;
-
 
 //The main htmls need to be added before listeners can be added
-chrome.runtime.onMessage.addListener((request)=>{
+document.addEventListener("DOMContentLoaded", ()=>{
 
-    if (request.load === "load content"){
+        //listener to check for mouse location
 
-        //View display logic
+        let xPos;
+        let yPos; 
 
         document.addEventListener("mousemove", (event)=>{
-            //Dynamically update the view popup location to the mouse cursor position
-            Views.xPos = event.clientX + document.documentElement.scrollLeft;
-            Views.yPos  = event.clientY + document.documentElement.scrollTop;
+
+            xPos = event.clientX + document.documentElement.scrollLeft;
+            yPos = event.clientY + document.documentElement.scrollTop;
+        
+            Views.xPos = xPos;
+            Views.yPos = yPos;
+        
         })
 
-        //When the DOM has loaded, the views are appeneded to the current page
+        //When the DOM has loaded, the script appends all the views to the current page and sets the current view to the pop up bubble
 
         Views.appendView(popupBubbleObject.view);
         Views.appendView(translationPopupObject.view);
-
-        //Load content from web available resources (PNGs etc)
-        resourceSearch();
-
+        Views.setView(popupBubbleObject.view);
 
         let selectionString;
-        let translationString;
-
         let translationViewClicked = false;
         let bubbleViewClicked = false;
         
@@ -257,98 +230,36 @@ chrome.runtime.onMessage.addListener((request)=>{
             selectionString = selectionObject.toString();
             selectionString = selectionString.trim()
 
-            
-            if (selectionString.length > 0 && bubbleViewClicked == false && translationViewClicked == false){
 
-                //If there is a selection and bubble view has not been activated yet, it will display.
-
+            if (selectionString.length > 0 && bubbleViewClicked == false){
                 Views.changeView(popupBubbleObject.view);
                 bubbleViewClicked = true;
-
                 
-            } else if (bubbleViewClicked == true && selectionString.length === 0) {
-
-                //If bubble view is active, but there is no selection, then the bubble is turned off.
-
+            } else if (selectionString.length > 0 && translationViewClicked == false) {
                 Views.changeView("none");
                 bubbleViewClicked = false;
-        
+            } 
 
-            } else if (translationViewClicked == true && selectionString.length > 0 && bubbleViewClicked == false){
-
-                //if translation view is active, but there is a selection, and bubble is inactive, then nothing happens.
-                return
-            }
         });
 
         
         document.getElementById(popupBubbleObject["elements"]["mainButton"]).addEventListener("click", ()=>{
-
-            //If the popup bubble is clicked , then the translation view is set, and the popup bubble reset
             Views.changeView(translationPopupObject.view);
-
-
-            //The string which is to be adpoted by the translation view is set here. SelectionString will reset to 0 on click
-            translationString = selectionString;
-            document.getElementById(translationPopupObject["elements"]["input"]).value = translationString;
 
             translationViewClicked = true;
             bubbleViewClicked = false;
 
         })
 
-        //Double click resets both views to hidden.
+        document.getElementById(translationPopupObject["elements"]["saveButton"]).addEventListener("click", ()=>{
+            Views.changeView("none")
+            translationViewClicked = false;
+            console.log(document.getElementById(translationPopupObject["elements"]["output"]).value)
+            //Execute database code
+        })
 
         document.addEventListener("dblclick", ()=>{
             Views.changeView("none");
             translationViewClicked = false;
-            bubbleViewClicked = false;
-
-            //Reset input value of translation input
-            translationPopupInput.value = null;
-            translationPopupOutput.value = null;
         })
-
-
-        
-
-        //Translation popup elements
-
-        let translationPopupInput =  document.getElementById(translationPopupObject["elements"]["input"]);
-        let translationPopupOutput = document.getElementById(translationPopupObject["elements"]["output"]);
-        let translationPopupSave = document.getElementById(translationPopupObject["elements"]["saveButton"]);
-        let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
-        let translationPopUpLProject = document.getElementById(translationPopupObject["elements"]["project"]);
-
-        translationPopupInput.addEventListener("input", ()=>{
-            console.log(translationPopupInput.value)
-
-            /*add API translation code
-            Add added text to cache which has a timer on how long since the last input
-            if the input is longer than 2 seconds, then the API call is made. This helps prevent issues 
-            with rate limiting.*/
-
-            translationPopupOutput.value = translationPopupInput.value
-
-        })
-        
-        translationPopupSave.addEventListener("click", ()=>{
-            Views.changeView("none")
-            translationViewClicked = false;
-
-            translationPopupInput.value = null;
-            translationPopupOutput.value = null;
-        
-            /*
-            Execute database code
-            */
-        })
-
-    }
-
-        
-
-
-
 })
-
