@@ -249,6 +249,14 @@ chrome.runtime.onMessage.addListener((request)=>{
 
         let translationViewClicked = false;
         let bubbleViewClicked = false;
+
+        //Translation popup elements
+
+        let translationPopupInput =  document.getElementById(translationPopupObject["elements"]["input"]);
+        let translationPopupOutput = document.getElementById(translationPopupObject["elements"]["output"]);
+        let translationPopupSave = document.getElementById(translationPopupObject["elements"]["saveButton"]);
+        let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
+        let translationPopUpLProject = document.getElementById(translationPopupObject["elements"]["project"]);
         
 
         document.addEventListener("mouseup", ()=>{
@@ -287,10 +295,13 @@ chrome.runtime.onMessage.addListener((request)=>{
             //If the popup bubble is clicked , then the translation view is set, and the popup bubble reset
             Views.changeView(translationPopupObject.view);
 
+            //Focus on the save button immediately
+            translationPopupSave.focus()
+
 
             //The string which is to be adpoted by the translation view is set here. SelectionString will reset to 0 on click
             translationString = selectionString;
-            document.getElementById(translationPopupObject["elements"]["input"]).value = translationString;
+            translationPopupInput.value = translationString;
 
             translationViewClicked = true;
             bubbleViewClicked = false;
@@ -308,17 +319,9 @@ chrome.runtime.onMessage.addListener((request)=>{
             translationPopupInput.value = null;
             translationPopupOutput.value = null;
         })
-
-
         
 
-        //Translation popup elements
-
-        let translationPopupInput =  document.getElementById(translationPopupObject["elements"]["input"]);
-        let translationPopupOutput = document.getElementById(translationPopupObject["elements"]["output"]);
-        let translationPopupSave = document.getElementById(translationPopupObject["elements"]["saveButton"]);
-        let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
-        let translationPopUpLProject = document.getElementById(translationPopupObject["elements"]["project"]);
+        //Translation popup logic
 
         translationPopupInput.addEventListener("input", ()=>{
             console.log(translationPopupInput.value)
@@ -333,7 +336,7 @@ chrome.runtime.onMessage.addListener((request)=>{
         })
         
         translationPopupSave.addEventListener("click", ()=>{
-            Views.changeView("none")
+            Views.changeView("none");
             translationViewClicked = false;
 
             translationPopupInput.value = null;
@@ -345,10 +348,6 @@ chrome.runtime.onMessage.addListener((request)=>{
         })
 
     }
-
-        
-
-
 
 })
 

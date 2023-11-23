@@ -66,8 +66,37 @@
 
 
                     <div class="current-project-tagset-wrapper">
-                        <h3>Choose tags</h3>
-                        <!-- Need to work out format for displaying and selecting tags-->
+
+                        <div class="current-project-tagset-title-dropdown-wrapper">
+                            <div class="current-project-tagset-title-wrapper">
+                                <span class="current-project-tagset-title">
+                                    Select Tags
+                                </span>
+                            </div>
+                            <div class="current-project-tagset-dropdown-wrapper">
+                                <select class="vocab-select" name="" id="current-project-tag-select">
+                                    <option value="Spanish">Spanish</option>
+                                    <option value="Crypto">Crypto</option>
+                                    <option value="Dating">Dating</option>
+                                </select>
+                            </div>
+                            <div class="current-project-tagset-add-wrapper">
+                                <button class="vocab-button" id="current-project-add-tag">
+                                    Add
+                                </button>
+                            </div>
+                        </div> 
+
+                        <div class="current-project-tagset-selected-wrapper">
+                            <div class="vocab-tags-selected-background">
+                                <ul class="vocab-tags-selected-list" id="current-project-tags-selected-list">
+
+                                    <!-- These list items will be appended on click-->
+                                    
+                                </ul>
+                            </div>
+                        </div>
+                        
                     </div>
 
                     <div class="current-project-button-wrapper">
@@ -99,25 +128,54 @@
                                 <li class="search-by-dropdown-wrapper">
 
                                     <select title="projects" class="vocab-dropdown" name="projects" id="search-wrapper-projects-list">
-                                        <option value="">All Projects</option>
-                                        <option value="">Business</option>
-                                        <option value="">Crypto</option>
+                                        <option value="All Projects">All Projects</option>
+                                        <option value="Business">Business</option>
+                                        <option value="Crypto">Crypto</option>
 
                                     </select>
 
                                     <select title="urls" name="urls" id="search-wrapper-url-list" class="vocab-dropdown">
-                                        <option value="">All URLs</option>
+                                        <option value="All URLs">All URLs</option>
 
                                         <!-- Options available change depedning on whether all Projects or 
                                         indiviudal projects are chosen. Only those urls appearing in a sleected
                                         project will be available to choose from the dropdown.  Therefore, we need
                                         to programmatically change the dropdown items.-->
-                                        <option value="">google.com</option>
+                                        <option value="google.com">google.com</option>
                                     </select>
 
                                 </li>
                                 <li class="search-by-tag-list-wrapper">
-                                    <!-- Tags  -->
+                                        <div class="search-tagset-title-dropdown-wrapper">
+                                            <div class="search-tagset-title-wrapper">
+                                                <span class="search-tagset-title">
+                                                    Select Tags
+                                                </span>
+                                            </div>
+                                            <div class="search-tagset-dropdown-wrapper">
+                                                <select class="vocab-select" name="" id="search-tag-select">
+                                                    <option value="Spanish">Spanish</option>
+                                                    <option value="Crypto">Crypto</option>
+                                                    <option value="Dating">Dating</option>
+                                                </select>
+                                            </div>
+                                            <div class="search-tagset-add-wrapper">
+                                                <button class="vocab-button" id="search-add-tag">
+                                                    Add
+                                                </button>
+                                            </div>
+                                        </div> 
+                
+                                        <div class="search-tagset-selected-wrapper">
+                                            <div class="vocab-tags-selected-background">
+                                                <ul class="vocab-tags-selected-list" id="search-tags-selected-list">
+                
+                                                    <!-- These list items will be appended on click-->
+                                                    
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    
                                 </li>
                             </ul>
                         </div>
@@ -371,7 +429,7 @@
                                     <span>Project Name</span>
                                 </div>
                                 <div class="add-project-name-input-wrapper">
-                                    <input class="add-project-name-input" type="text">
+                                    <input class="add-project-name-input" type="text" id="add-project-name-input">
                                 </div>
                             </li>
 
@@ -380,9 +438,9 @@
                                     <span>Default Language</span>
                                 </div>
                                 <div class="add-project-language-input-wrapper">
-                                    <select class="add-project-language-select"name="" id="">
-                                        <option value="">Spanish</option>
-                                        <option value="">English</option>
+                                    <select class="add-project-language-select" name="" id="add-project-language-dropdown">
+                                        <option value="Spanish">Spanish</option>
+                                        <option value="English">English</option>
                                     </select>
                                 </div>
                             </li>
@@ -391,19 +449,29 @@
                                 <div class="add-project-tags-title-wrapper">
                                     <span>Select Tags</span>
                                 </div>
+
                                 <div class="add-project-tags-chosen-wrapper">
-                                    <textarea placeholder="no tags" cols="10" rows="6"> </textarea>
+                                    
+                                    <div class="vocab-tags-selected-background">
+                                        <ul class="vocab-tags-selected-list" id="add-project-tags-selected-list">
+
+                                            <!-- These list items will be appended on click-->
+                                            
+                                        </ul>
+                                    </div>
+                                
                                 </div>
+
                                 <div class="add-project-tags-select-wrapper">
                                     <div class="add-project-tags-dropdown-wrapper">
-                                        <select name="" id="">
-                                            <option value="">Spanish</option>
-                                            <option value="">Business</option>
-                                            <option value="">Crypto</option>
+                                        <select name="" id="add-project-tags-dropdown">
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="Business">Business</option>
+                                            <option value="Crypto">Crypto</option>
                                         </select>
                                     </div>
                                     <div class="add-project-tags-add-wrapper">
-                                        <button class="vocab-button">
+                                        <button class="vocab-button" id="add-project-add-tag">
                                             Add
                                         </button>
                                     </div>
@@ -417,21 +485,12 @@
                         <button class="vocab-button">Create Project</button>
                     </div>
                 </div>
+
                 <div class="add-project-main-menu-wrapper">
                     <button class="vocab-button" id="add-project-main-menu-button">Main Menu</button>
                 </div>
 
-
-
-
-
-
-
             </section>
-
-
-
-
 
         </main>
     </div>
