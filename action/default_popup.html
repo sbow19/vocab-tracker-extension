@@ -44,7 +44,7 @@
                 <div class="current-projects-wrapper">
 
                     <div class="current-projects-title-wrapper">
-                        <h3 class="current-projects-title vocab-title" > Current Project</h3>
+                        <h3 class="current-projects-title vocab-title">Current Project</h3>
                     </div>
 
                     <div class="current-project-select-wrapper">
@@ -304,7 +304,7 @@
                     </div>
                     <div class="result-export-wrapper">
                         <div class="result-export-button-wrapper">
-                            <button class="vocab-button"> Export</button>
+                            <button class="vocab-button" id="result-export"> Export</button>
                         </div>
                     </div>
                     <div id="result-popup-main-view-button-wrapper">
@@ -329,20 +329,50 @@
                                 <span class="result-parameter-project-title">Select Project</span>
                             </div>
                             <div class="result-parameter-project-set-wrapper">
-                                <select name="" id="translation-parameter-project-set">
+                                <select name="" id="result-parameter-project-set">
                                     <option value="default">Default</option>
                                     <option value="project 1">Project 1</option>
                                     <option value="project 2">Project 2</option>
                                 </select>
                             </div>
                         </li>
-                        <li class="result-parameter-tags-wrapper"></li>
+                        <li class="result-parameter-tags-wrapper">
+                            <div class="result-tagset-title-dropdown-wrapper">
+                                <div class="result-tagset-title-wrapper">
+                                    <span class="result-tagset-title">
+                                        Select Tags
+                                    </span>
+                                </div>
+                                <div class="result-tagset-dropdown-wrapper">
+                                    <select class="vocab-select" name="" id="result-tag-select">
+                                        <option value="Spanish">Spanish</option>
+                                        <option value="Crypto">Crypto</option>
+                                        <option value="Dating">Dating</option>
+                                    </select>
+                                </div>
+                                <div class="result-tagset-add-wrapper">
+                                    <button class="vocab-button" id="result-add-tag">
+                                        Add
+                                    </button>
+                                </div>
+                            </div> 
+    
+                            <div class="result-tagset-selected-wrapper">
+                                <div class="vocab-tags-selected-background">
+                                    <ul class="vocab-tags-selected-list" id="result-tags-selected-list">
+    
+                                        <!-- These list items will be appended on click-->
+                                        
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
                         <li class="result-parameter-buttons-wrapper">
                             <div>
-                                <button>Search</button>
+                                <button class="vocab-button" id="result-search">Search</button>
                             </div>
                             <div>
-                                <button>Clear</button>
+                                <button class="vocab-button" id="result-clear">Clear</button>
                             </div>
                         </li>
                     </ul>
@@ -364,10 +394,10 @@
 
                         <div class="translation-input-output-wrapper-inner">
                             <div class="translation-input-text-wrapper">
-                                <textarea name="" id="" cols="50" rows="3" placeholder="Input language"></textarea>
+                                <textarea name="" id="translation-input-text" cols="50" rows="3" placeholder="Input language"></textarea>
                             </div>
                             <div class="translation-output-text-wrapper">
-                                <textarea name="" id="translation-output" cols="50" rows="3" placeholder="Output language"></textarea>
+                                <textarea name="" id="translation-output-text" cols="50" rows="3" placeholder="Output language"></textarea>
                             </div>
                         </div>
 
@@ -386,9 +416,9 @@
                                 </div>
                                 <div class="translation-parameter-language-set-wrapper">
                                     <select name="" id="translation-parameter-language-set">
-                                        <option value="en">English</option>
-                                        <option value="es">Spanish</option>
-                                        <option value="de">German</option>
+                                        <option value="English">English</option>
+                                        <option value="Spanish">Spanish</option>
+                                        <option value="German">German</option>
                                     </select>
                                 </div>
                             </li>
@@ -404,7 +434,42 @@
                                     </select>
                                 </div>
                             </li>
-                            <li class="translation-parameter-tags-wrapper"></li>
+
+
+                            <li class="translation-parameter-tags-wrapper">
+                                <div class="translation-tagset-title-dropdown-wrapper">
+                                    <div class="translationt-tagset-title-wrapper">
+                                        <span class="translation-tagset-title">
+                                            Select Tags
+                                        </span>
+                                    </div>
+                                    <div class="translation-tagset-dropdown-wrapper">
+                                        <select class="vocab-select" name="" id="translation-tag-select">
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="Crypto">Crypto</option>
+                                            <option value="Dating">Dating</option>
+                                        </select>
+                                    </div>
+                                    <div class="translation-tagset-add-wrapper">
+                                        <button class="vocab-button" id="translation-add-tag">
+                                            Add
+                                        </button>
+                                    </div>
+                                </div> 
+        
+                                <div class="translation-tagset-selected-wrapper">
+                                    <div class="vocab-tags-selected-background">
+                                        <ul class="vocab-tags-selected-list" id="translation-tags-selected-list">
+        
+                                            <!-- These list items will be appended on click-->
+                                            
+                                        </ul>
+                                    </div>
+                                </div>
+
+                            </li>
+
+
                             <li class="translation-parameter-save-wrapper">
                                 <button class="vocab-button translation-parameter-save-button" id="translation-save">Save</button>
                             </li>
@@ -482,7 +547,7 @@
 
                     </div>
                     <div class="add-project-add-button">
-                        <button class="vocab-button">Create Project</button>
+                        <button class="vocab-button" id="add-project-create-project">Create Project</button>
                     </div>
                 </div>
 

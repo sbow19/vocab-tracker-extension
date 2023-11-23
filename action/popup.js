@@ -79,6 +79,32 @@ addMainMenuButton.addEventListener("click", ()=>{
 })
 
 
+//General functions
+
+function getTags(querySelector){
+    //This function will be used for other parts of the UI
+
+    let tagsNodeList = document.querySelectorAll(`${querySelector} > li span` );
+
+    let tagsList = [];
+
+    for (tag of tagsNodeList){
+
+        tagsList.push(tag.innerText)
+
+    }
+
+    let listOfTags  = document.querySelectorAll(`${querySelector} > li`);
+
+    for (listNode of listOfTags){
+        listNode.remove()
+    }
+
+    return tagsList;
+
+}
+
+
 //Default Popup View logic
 
 
@@ -135,9 +161,6 @@ currentProjectAddTagButton.addEventListener("click", ()=>{
         });
     };
 });
-
-
-//Search terms logic
 
 //Tag selelction
 
@@ -207,32 +230,6 @@ const searchClearButton= document.getElementById("search-wrapper-clear-button")
 
 const searchSearchButton = document.getElementById("search-wrapper-search-button");
 
-function getTags(querySelector){
-    //This function will be used for other parts of the UI
-
-    let tagsNodeList = document.querySelectorAll(`${querySelector} > li span` );
-
-    let tagsList = [];
-
-    for (tag of tagsNodeList){
-
-        console.log(tag)
-
-        tagsList.push(tag.innerText)
-
-    }
-
-    let listOfTags  = document.querySelectorAll(`${querySelector} > li`);
-
-    for (listNode of listOfTags){
-        console.log(listNode)
-        listNode.remove()
-    }
-
-    return tagsList;
-
-}
-
 
 searchSearchButton.addEventListener("click", ()=>{
     let searchTerms = {
@@ -254,7 +251,6 @@ searchSearchButton.addEventListener("click", ()=>{
     let listOfTags  = document.querySelectorAll(`#search-tags-selected-list > li`);
 
     for (listNode of listOfTags){
-        console.log(listNode)
         listNode.remove()
     }
 
@@ -270,13 +266,206 @@ searchClearButton.addEventListener("click", ()=>{
 })
 
 
+//Results View logic
 
+//Tags select
+
+const resultTagsDropdown = document.getElementById("result-tag-select");
+
+const resultAddTagButton = document.getElementById("result-add-tag");
+
+const resultTagSelection = document.getElementById("result-tags-selected-list");
+
+let resultTagValue;
+
+resultAddTagButton.addEventListener("click", ()=>{
+
+    //If another element has the tag, then another tag will not be appeneded
+
+    if(!document.getElementById(`result-${resultTagsDropdown.value}-tag`)){
+
+        let newTag = document.createElement("li");
+
+        //Get select value
+
+        resultTagValue =  resultTagsDropdown.value;
+
+
+        //Create tag class
+        newTag.classList.add("vocab-tag-outer");
+
+        newTag.id = `result-${resultTagValue}-tag`
+
+        newTag.innerHTML = `
+        
+        <div class="vocab-tag-inner">
+            <span>${resultTagValue}</span>
+        </div>
+        <div class="vocab-tag-delete" id="result-${resultTagValue}-delete">
+            <button> delete </button>
+        </div>
+        `
+        //Append new tag
+        resultTagSelection.appendChild(newTag);
+
+        let tag = document.getElementById(`result-${resultTagValue}-delete`)
+
+        tag.addEventListener("click", ()=>{
+
+            //Removes list element on click
+
+            tag.parentNode.remove()
+
+        });
+    };
+});
+
+//Table
+
+const resultTableBody = document.getElementById("popup-result-table-view");
+
+
+//URL and Project drop down
+
+const resultURLDropdown = document.getElementById("result-parameter-url-set");
+
+const resultProjectDropdown = document.getElementById("result-parameter-project-set");
+
+//Search and clear buttons
+
+const resultSearch = document.getElementById("result-search");
+
+const resultClear = document.getElementById("result-clear");
+
+resultSearch.addEventListener("click", ()=>{
+
+    let searchParameters = {
+        project: resultProjectDropdown.value,
+        url: resultURLDropdown.value,
+        tags: getTags("#result-tags-selected-list")
+    };
+
+    console.log(searchParameters);
+
+    //reset search parameters
+
+    resultURLDropdown.selectedIndex = 0;
+    resultProjectDropdown.selectedIndex = 0;
+
+    let listOfTags  = document.querySelectorAll(`#result-tags-selected-list > li`);
+
+    for (listNode of listOfTags){
+        listNode.remove()
+    }
+
+    //reset results table
+
+    resultTableBody.innerHTML = "";
+})
+
+
+//Export button
+
+const resultExport = document.getElementById("result-export");
+
+resultExport.addEventListener("click", ()=>{
+
+    console.log(resultTableBody.innerHTML)
+
+})
+
+
+//Translation View Logic
+
+//Tags sleection
+
+const translationTagsDropdown = document.getElementById("translation-tag-select");
+
+const translationAddTagButton = document.getElementById("translation-add-tag");
+
+const translationTagSelection = document.getElementById("translation-tags-selected-list");
+
+let translationTagValue;
+
+translationAddTagButton.addEventListener("click", ()=>{
+
+    //If another element has the tag, then another tag will not be appeneded
+
+    if(!document.getElementById(`translation-${translationTagsDropdown.value}-tag`)){
+
+        let newTag = document.createElement("li");
+
+        //Get select value
+
+        translationTagValue =  translationTagsDropdown.value;
+
+
+        //Create tag class
+        newTag.classList.add("vocab-tag-outer");
+
+        newTag.id = `translation-${translationTagValue}-tag`
+
+        newTag.innerHTML = `
+        
+        <div class="vocab-tag-inner">
+            <span>${translationTagValue}</span>
+        </div>
+        <div class="vocab-tag-delete" id="translation-${translationTagValue}-delete">
+            <button> delete </button>
+        </div>
+        `
+        //Append new tag
+        translationTagSelection.appendChild(newTag);
+
+        let tag = document.getElementById(`translation-${translationTagValue}-delete`)
+
+        tag.addEventListener("click", ()=>{
+
+            //Removes list element on click
+
+            tag.parentNode.remove()
+
+        });
+    };
+});
+
+//Language and project buttons logic 
+
+const translationLanguageDropdown = document.getElementById("translation-parameter-language-set");
+
+const translationProjectsDropdown = document.getElementById("translation-parameter-project-set");
+
+//output logic
+
+const translationInput = document.getElementById("translation-input-text");
+const translationOutput = document.getElementById("translation-output-text")
+
+
+//Save to database button
+
+const translationSave = document.getElementById("translation-save");
+
+translationSave.addEventListener("click", ()=>{
+
+    let translationResults = {
+        project: translationProjectsDropdown.value,
+        language: translationLanguageDropdown.value,
+        tags: getTags("#translation-tags-selected-list"),
+        foreign_word: translationInput.value,
+        translated_word: translationOutput.value
+    };
+
+    console.log(translationResults);
+
+    //reset search parameters
+
+    translationInput.value = "";
+    translationOutput.value = "";
+
+})
 
 
 //Add Project View Logic
-
-//Add listener to create project
-
 
 
 //Tags selection 
@@ -332,6 +521,44 @@ addProjectAddTagButton.addEventListener("click", ()=>{
     };
 });
 
-//Get lanaguage select
+//Get dropdown selection
+
+const addProjectLanguageDropdown = document.getElementById("add-project-language-dropdown");
+
+const addProjectNameInput = document.getElementById("add-project-name-input");
+
+//Create project button
+
+const addProjectCreate = document.getElementById("add-project-create-project");
+
+addProjectCreate.addEventListener("click", ()=>{
+
+    let newProjectDetails = {
+        name: addProjectNameInput.value,
+        language: addProjectLanguageDropdown.value,
+        tags: getTags("#add-project-tags-selected-list"),
+    };
+
+    console.log(newProjectDetails);
+
+    //reset search parameters
+
+    addProjectNameInput.value = "";
+
+    addProjectLanguageDropdown.selectedIndex = 0;
+
+    let listOfTags  = document.querySelectorAll(`#add-project-tags-selected-list > li`);
+
+    for (listNode of listOfTags){
+        listNode.remove()
+    }
+
+})
+
+
+
+
+
+
 
 
