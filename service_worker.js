@@ -1,7 +1,39 @@
+
+
+//General functions
+
+async function addToProjectList(newProjectName){
+
+    let detailsList = await chrome.storage.local.get(["allProjectDetails"]);
+
+    let newAllProjectDetails = detailsList["allProjectDetails"]
+
+    newAllProjectDetails["allProjects"].push(newProjectName);
+
+    let allProjectDetails = {
+        allProjectDetails: newAllProjectDetails
+    }
+
+    await chrome.storage.local.set(allProjectDetails);
+};
+
+
+
+
 /* Listener which creates the initial IndexedDB on first install. Deletes same
 when uninstalled.
 */
 
+class MessageTemplate {
+
+    constructor(message, details){
+
+        this.message = message
+        this.details = details
+
+    };
+    
+}
 
 chrome.runtime.onInstalled.addListener((details)=>{
 
@@ -80,6 +112,27 @@ chrome.runtime.onInstalled.addListener((details)=>{
     }
 });
 
+chrome.runtime.onInstalled.addListener(async(details)=>{
+
+    if(details.reason === "install"){
+
+        let allProjectDetails = 
+        {  allProjectDetails: {
+                allProjects: [],
+                allLanguages: [],
+                allURLs: [],
+                allTags: []
+            }
+        };
+
+        await chrome.storage.local.set(allProjectDetails);
+    };
+});
+
+chrome.storage.local.onChanged.addListener((result)=>{
+    console.log(result)
+})
+
 /*Listen to delete project
 
 chrome.runtime.onMessage.addListener((request)=>{
@@ -90,19 +143,88 @@ chrome.runtime.onMessage.addListener((request)=>{
 
 */
 
+//Listen to when content scripts are loaded to ensure
+
 
 /* Listen to search from other views so we can search and
 store database search temporarily*/
 
 
+const setProjectDetailsMessage = new MessageTemplate("set-project-details", {
+    projectDetails: {},
+    projectName: ""
+})
 
-//Listener that obtains current tab ID in any given moment.
 
-let currentTabID;
+//Set current project based on selected current project
+chrome.runtime.onMessage.addListener(async (request, sender, sendResponse)=>{
 
-chrome.tabs.onActivated.addListener((activeInfo)=>{
-    currentTabID = activeInfo.tabId;
-    console.log(currentTabID);
+    if (request.message === "set-current-project"){
+
+        //Extract project name from message
+        let currentProjectName = request.details.currentProject;
+        
+        //Get project details from local storage
+        let result = await chrome.storage.local.get([currentProjectName]);
+            
+        let currentProjectDetails = {[currentProjectName]: result[currentProjectName]};
+
+        let storageCurrentProjectDetails = {"currentProject": currentProjectDetails};
+
+        await chrome.storage.local.remove("currentProject");
+        
+        await chrome.storage.local.set(storageCurrentProjectDetails);
+
+        let newResult = await chrome.storage.local.get(["currentProject"]);
+
+        setProjectDetailsMessage.details.projectDetails = newResult["currentProject"];
+        setProjectDetailsMessage.details.projectName = currentProjectName;
+
+        //Set details on popup view
+        chrome.runtime.sendMessage(setProjectDetailsMessage);
+
+        //Set content view to set current project
+
+        console.log(currentID)
+        chrome.tabs.sendMessage(currentID,
+            setProjectDetailsMessage);
+    };
+});
+
+//Listener detecting whether new project created
+
+
+const newProjectDetailsMessage = new MessageTemplate("add-new-project-details", {
+    projectDetails: {}
+})
+
+//Add new project details to local storage
+chrome.runtime.onMessage.addListener(async(request, sender, sendResponse)=>{
+    if(request.message === "add-project"){
+        //Set new project details to local storage
+
+        let checkResult = await chrome.storage.local.get([request.details.projectName])
+
+        if (Object.keys(checkResult).length !== 0){
+
+            console.log("Duplicate identified")
+            //Add error message  for window
+            return
+        }
+
+        newProjectDetailsMessage.details.projectDetails = request.details.projectDetails
+
+        //Prompt action script to add new project details
+        chrome.runtime.sendMessage(newProjectDetailsMessage)
+
+        //Prompt content script to add new project details
+        chrome.tabs.sendMessage(currentID,
+            newProjectDetailsMessage);
+
+        await addToProjectList(request.details.projectName);
+        
+        await chrome.storage.local.set(request.details.projectDetails);
+    };
 });
 
 
@@ -110,10 +232,15 @@ chrome.tabs.onActivated.addListener((activeInfo)=>{
 
 chrome.tabs.onUpdated.addListener(async (updatedTab)=>{
 
-    console.log(updatedTab)
-
+    //Content scripts load when tabs are updated
     await chrome.tabs.sendMessage(updatedTab, {
         load:"load content"
-    })
-
+    });
 });
+
+let currentID;
+
+chrome.tabs.onActivated.addListener((result)=>{
+    currentID = result.tabId;
+
+})

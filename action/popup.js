@@ -102,13 +102,215 @@ function getTags(querySelector){
 
     return tagsList;
 
+};
+
+function appendNewDetailsDropDowns(newProjectDetails){
+    
+    /* 
+        When user creates new projects, urls etc, these are appended across the tracker.
+        The new Project Details is an object with the following schema:
+
+        {
+            projectName : {
+                language: string,
+                tags: [tags],
+                urls: [urls]
+            }
+        }
+    
+    */
+
+    //creating new option element for projects
+
+
+    let newProjectName = Object.keys(newProjectDetails)[0];
+
+    let projectsDropdownList = [
+        currentProjectsProjectDropdown,
+        searchProjectsDropdown,
+        resultProjectDropdown,
+        translationProjectsDropdown
+    ]
+
+    for (dropdown of projectsDropdownList){
+        let newProjectNameElement = document.createElement("option");
+
+        newProjectNameElement.setAttribute("value", newProjectName);
+
+        newProjectNameElement.innerText = newProjectName;
+
+        dropdown.appendChild(newProjectNameElement);
+    }
+
 }
+
+class MessageTemplate {
+
+    constructor(message, details){
+
+        this.message = message
+        this.details = details
+
+    };
+    
+};
+
+//Setting tags by default.
+
+function currentProjectTags(tags){
+
+    if (tags.length > 0){
+
+        for (let tag of tags){
+            let newTag = document.createElement("li");
+
+            //Create tag class
+            newTag.classList.add("vocab-tag-outer");
+
+            newTag.id = `current-project-${tag}-tag`
+
+            newTag.innerHTML = `
+            
+            <div class="vocab-tag-inner">
+                <span>${tag}</span>
+            </div>
+            <div class="vocab-tag-delete" id="current-project-${tag}-delete">
+                <button> delete </button>
+            </div>
+            `
+
+            //Append new tag
+            currentProjectTagSelection.appendChild(newTag);
+
+            let deleteTag = document.getElementById(`current-project-${tag}-delete`)
+
+            deleteTag.addEventListener("click", ()=>{
+
+                //Removes list element on click
+
+                deleteTag.parentNode.remove()
+
+            });
+        };
+    };
+};
+
+function changeTags(tags){
+
+    //Clear current tags
+
+    currentProjectTagSelection.innerHTML = "";
+
+    currentProjectTags(tags);
+
+    //Extracting tags list from current project details
+
+    console.log(tags)
+    
+}
+
+
+//Action load up details
+
+//Load current project details
+
+document.addEventListener("DOMContentLoaded", async()=>{
+    console.log("this content has loaded");
+
+    //Retrieve current project details from storage
+
+    let currentProject = await chrome.storage.local.get(["currentProject"]);
+
+    console.log(currentProject);
+    console.log(currentProject["currentProject"])
+
+    let currentProjectName = Object.keys(currentProject["currentProject"]);
+
+    currentProjectName = currentProjectName[0];
+    
+    let currentProjectDetails = currentProject["currentProject"][currentProjectName];
+
+    //get current project tags
+
+    let currentProjectTags = currentProjectDetails["tags"];
+
+    changeTags(currentProjectTags);
+
+    //set current project value
+
+    appendNewDetailsDropDowns(currentProject["currentProject"]);
+
+    //The selectred index for the current project is always 1
+    currentProjectsProjectDropdown.selectedIndex = 1;
+
+});
+
+//load tags, projects and languages preferences on startup; all set in options file
 
 
 //Default Popup View logic
 
+const currentProjectsProjectDropdown = document.getElementById("current-project-project-options");
+
 
 //Current Project Logic
+
+//Set current project details
+
+/*
+
+    The details for the  current project are set in the main view. Details
+    such as project name, urls, defaul language, and tags, are default values for
+    other views and the translation pop up view.
+
+    When the user adds and remove tags, the current project will change dynamically
+    so that the current project only has the selected tags.
+
+*/
+
+const setCurrentProjectMessage = new MessageTemplate(
+    "set-current-project",
+    {
+        currentProject : ""
+    }
+)
+
+currentProjectsProjectDropdown.addEventListener("change", async()=>{
+
+    //Send to Service Worker  when refactoring for security reasons.
+
+    //Get value of dropdown
+    let currentProjectName = currentProjectsProjectDropdown.value
+
+    //Set message values. Send project name to be set to current
+
+    setCurrentProjectMessage.details.currentProject = currentProjectName;
+
+    await chrome.runtime.sendMessage(setCurrentProjectMessage);
+});
+
+chrome.runtime.onMessage.addListener((request)=>{
+    if (request.message === "set-project-details"){
+
+        console.log(request.details.projectDetails)
+
+        let projectName = request.details.projectName
+
+        let {tags, language, urls} = request.details.projectDetails[projectName];
+
+        /*Code setting current project details to views.*/
+
+        //setting tags on current view 
+
+        changeTags(tags);
+
+        //setting default language?
+
+        //setting urls?
+    };
+});
+
+
 
 //Tag selelction
 
@@ -161,6 +363,8 @@ currentProjectAddTagButton.addEventListener("click", ()=>{
         });
     };
 });
+
+//Current project search logic
 
 //Tag selelction
 
@@ -363,6 +567,23 @@ resultSearch.addEventListener("click", ()=>{
     resultTableBody.innerHTML = "";
 })
 
+resultClear.addEventListener("click", ()=>{
+
+    resultURLDropdown.selectedIndex = 0;
+    resultProjectDropdown.selectedIndex = 0;
+    resultTagsDropdown.selectedIndex = 0;
+
+    let listOfTags  = document.querySelectorAll(`#result-tags-selected-list > li`);
+
+    for (listNode of listOfTags){
+        listNode.remove()
+    }
+
+    //reset results table
+
+    resultTableBody.innerHTML = "";
+});
+
 
 //Export button
 
@@ -531,15 +752,15 @@ const addProjectNameInput = document.getElementById("add-project-name-input");
 
 const addProjectCreate = document.getElementById("add-project-create-project");
 
-addProjectCreate.addEventListener("click", ()=>{
+addProjectCreate.addEventListener("click", async ()=>{
 
     let newProjectDetails = {
         name: addProjectNameInput.value,
         language: addProjectLanguageDropdown.value,
         tags: getTags("#add-project-tags-selected-list"),
+        urls: []
+        
     };
-
-    console.log(newProjectDetails);
 
     //reset search parameters
 
@@ -553,8 +774,57 @@ addProjectCreate.addEventListener("click", ()=>{
         listNode.remove()
     }
 
+    //set project details in local storage
+
+    createProject(newProjectDetails);
+
+});
+
+const checkProjectMessage = new MessageTemplate("check-duplicate-project", {
+    projectName : ""
+});
+
+const addProjectMessage = new MessageTemplate("add-project", {
+    projectDetails: {},
+    projectName: ""
+});
+
+const getProjectMessage = new MessageTemplate("get-project", {
+    projectName: ""
 })
 
+async function createProject(newProjectDetails){
+
+    let projectName = newProjectDetails.name; 
+
+    checkProjectMessage.details.projectName = newProjectDetails.name
+
+    //If no duplicate detected, then new project assigned.
+
+    let projectDetails = {
+        language: newProjectDetails.language,
+        tags: newProjectDetails.tags,
+        urls: newProjectDetails.urls
+    }
+
+    let newProjectDetailsSet = {[projectName]: projectDetails};
+
+    addProjectMessage.details.projectDetails = newProjectDetailsSet;
+    addProjectMessage.details.projectName = projectName;
+
+    await chrome.runtime.sendMessage(addProjectMessage);
+        
+};
+
+
+chrome.runtime.onMessage.addListener((request)=>{
+    if (request.message === "add-new-project-details"){
+        //If duplicate project not detected in memory, then project details added
+
+        appendNewDetailsDropDowns(request.details.projectDetails);
+
+    }
+})
 
 
 

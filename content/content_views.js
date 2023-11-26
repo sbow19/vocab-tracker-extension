@@ -2,9 +2,7 @@
 
 class Views {
 
-    constructor(){
-            
-    }
+    constructor(){}
     
     /*These properties set the location of views based on the cursor location*/
     static xPos = null;
@@ -163,9 +161,8 @@ translationPopup.innerHTML = `
                             </div>
                             <div class="translation-parameter-language-set-wrapper">
                                 <select name="" id="translation-parameter-language-set">
-                                    <option value="en">English</option>
-                                    <option value="es">Spanish</option>
-                                    <option value="de">German</option>
+                                    <option value="English">English</option>
+    
                                 </select>
                             </div>
                         </li>
@@ -176,8 +173,6 @@ translationPopup.innerHTML = `
                             <div class="translation-parameter-project-set-wrapper">
                                 <select name="" id="translation-parameter-project-set">
                                     <option value="default">Default</option>
-                                    <option value="project 1">Project 1</option>
-                                    <option value="project 2">Project 2</option>
                                 </select>
                             </div>
                         </li>
@@ -214,7 +209,6 @@ async function resourceSearch(){
 
     console.log(popUpBubbleImage.src)
 
-
 }
 
 //Listener for selected text
@@ -222,10 +216,49 @@ async function resourceSearch(){
 let selectionText;
 
 
-//The main htmls need to be added before listeners can be added
-chrome.runtime.onMessage.addListener((request)=>{
 
-    if (request.load === "load content"){
+let loadCount = 0;
+//The main htmls need to be added before listeners can be added
+chrome.runtime.onMessage.addListener(async (request)=>{
+
+    if (request.load === "load content" && loadCount === 0){
+
+        loadCount = loadCount++;
+
+        function appendProject(projectName, defaultSetting){
+
+            let projectNameElement = document.createElement("option");
+
+            projectNameElement.setAttribute("value", projectName);
+
+            projectNameElement.innerText = projectName;
+
+            translationPopUpProject.appendChild(projectNameElement);
+
+            if (defaultSetting == true){
+                translationPopUpProject.selectedIndex = 1;
+            };
+        };
+
+        function appendLanguage(projectLanguage, defaultSetting){
+
+            let projectLanguageElement = document.createElement("option");
+
+            projectLanguageElement.setAttribute("value", projectLanguage);
+
+            projectLanguageElement.innerText = projectLanguage;
+
+            translationPopUpLanguage.appendChild(projectLanguageElement);
+
+            if (defaultSetting == true){
+                translationPopUpLanguage.selectedIndex = 1;
+            };
+        };
+
+        function appendTags(tags){
+            console.log(tags)
+        };
+
 
         //View display logic
 
@@ -239,6 +272,7 @@ chrome.runtime.onMessage.addListener((request)=>{
 
         Views.appendView(popupBubbleObject.view);
         Views.appendView(translationPopupObject.view);
+
 
         //Load content from web available resources (PNGs etc)
         resourceSearch();
@@ -256,7 +290,7 @@ chrome.runtime.onMessage.addListener((request)=>{
         let translationPopupOutput = document.getElementById(translationPopupObject["elements"]["output"]);
         let translationPopupSave = document.getElementById(translationPopupObject["elements"]["saveButton"]);
         let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
-        let translationPopUpLProject = document.getElementById(translationPopupObject["elements"]["project"]);
+        let translationPopUpProject = document.getElementById(translationPopupObject["elements"]["project"]);
         
 
         document.addEventListener("mouseup", ()=>{
@@ -345,9 +379,123 @@ chrome.runtime.onMessage.addListener((request)=>{
             /*
             Execute database code
             */
-        })
+        });
 
-    }
+        //Get details of current project and set the popup defaults
+        let currentProject = await chrome.storage.local.get(["currentProject"]);
 
-})
+        currentProject = currentProject["currentProject"];
 
+        let [currentProjectName] = Object.keys(currentProject);
+
+        let currentProjectDetails = currentProject[currentProjectName];
+
+        appendProject(currentProjectName, true);
+
+        appendLanguage(currentProjectDetails["language"], true);
+
+        appendTags(currentProjectDetails["tags"]);
+
+    };
+});
+
+chrome.runtime.onMessage.addListener((request)=>{
+   
+    if (request.message === "set-project-details"){
+
+        function setProject(projectName, projectOptionsList){
+
+            let index = 0;
+
+            for (project of projectOptionsList){
+                
+                console.log(project.innerText)
+                console.log(projectName);
+                console.log(index)
+                if (project.innerText === projectName){
+                    translationPopUpProject.selectedIndex = index;
+                    return
+                };
+
+                index = index + 1
+            };
+
+        };
+
+        function setLanguage(projectLanguage, languageOptionsList) {
+            let index = 0;
+
+            for (language of languageOptionsList){
+
+                if (language.innerText === projectLanguage){
+                    translationPopUpLanguage.selectedIndex = index;
+                    return
+                };
+
+                index = index + 1;
+            }
+        }
+
+        let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
+        let translationPopUpProject = document.getElementById(translationPopupObject["elements"]["project"]);
+
+        let projectOptionsList = translationPopUpProject.querySelectorAll("option");
+        let languageOptionsList = translationPopUpLanguage.querySelectorAll("option");
+
+        let projectName = Object.keys(request.details.projectDetails);
+        projectName = projectName[0];
+
+        setProject(projectName, projectOptionsList);
+
+        setLanguage(request.details.projectDetails[projectName]["language"], languageOptionsList);
+
+    };
+});
+
+chrome.runtime.onMessage.addListener( (request)=>{
+
+    if(request.message === "add-new-project-details"){
+
+
+        function appendProject(projectName, defaultSetting){
+
+            let projectNameElement = document.createElement("option");
+
+            projectNameElement.setAttribute("value", projectName);
+
+            projectNameElement.innerText = projectName;
+
+            translationPopUpProject.appendChild(projectNameElement);
+
+            if (defaultSetting == true){
+                translationPopUpProject.selectedIndex = 1;
+            };
+        };
+
+        function appendLanguage(projectLanguage, defaultSetting){
+
+            let projectLanguageElement = document.createElement("option");
+
+            projectLanguageElement.setAttribute("value", projectLanguage);
+
+            projectLanguageElement.innerText = projectLanguage;
+
+            translationPopUpLanguage.appendChild(projectLanguageElement);
+
+            if (defaultSetting == true){
+                translationPopUpLanguage.selectedIndex = 1;
+            };
+        };
+
+        let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
+        let translationPopUpProject = document.getElementById(translationPopupObject["elements"]["project"]);
+
+        let projectName = Object.keys(request.details.projectDetails);
+        projectName = projectName[0];
+        appendProject(projectName,false);
+
+        let projectLanguage = request.details.projectDetails[projectName]["language"];
+        appendLanguage(projectLanguage, false)
+        
+    };
+});
