@@ -13,12 +13,31 @@ async function addToProjectList(newProjectName){
     let allProjectDetails = {
         allProjectDetails: newAllProjectDetails
     }
-
+    
     await chrome.storage.local.set(allProjectDetails);
+
+    return newAllProjectDetails["allProjects"]
 };
 
+//Set current tab ID globally.
+let currentID;
 
+chrome.tabs.onActivated.addListener((result)=>{
+    currentID = result.tabId;
 
+});
+
+chrome.runtime.onMessage.addListener(async(request)=>{
+
+    if(request === "loaded"){
+
+        let queryOptions = {active: true};
+        // `tab` will either be a `tabs.Tab` instance or `undefined`.
+        let [tab] = await chrome.tabs.query(queryOptions);
+        console.log(tab)
+        currentID = tab.id;
+    };
+});
 
 /* Listener which creates the initial IndexedDB on first install. Deletes same
 when uninstalled.
@@ -157,7 +176,7 @@ const setProjectDetailsMessage = new MessageTemplate("set-project-details", {
 
 
 //Set current project based on selected current project
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse)=>{
+chrome.runtime.onMessage.addListener(async (request)=>{
 
     if (request.message === "set-current-project"){
 
@@ -185,7 +204,6 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse)=>{
 
         //Set content view to set current project
 
-        console.log(currentID)
         chrome.tabs.sendMessage(currentID,
             setProjectDetailsMessage);
     };
@@ -193,9 +211,9 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse)=>{
 
 //Listener detecting whether new project created
 
-
 const newProjectDetailsMessage = new MessageTemplate("add-new-project-details", {
-    projectDetails: {}
+    projectDetails: {},
+    projectList: []
 })
 
 //Add new project details to local storage
@@ -210,22 +228,231 @@ chrome.runtime.onMessage.addListener(async(request, sender, sendResponse)=>{
             console.log("Duplicate identified")
             //Add error message  for window
             return
-        }
+        };
 
         newProjectDetailsMessage.details.projectDetails = request.details.projectDetails
+
+        //Add new project to project name list in local storage, returns new list of projects in storage
+        let projectList = await addToProjectList(request.details.projectName);
+
+        newProjectDetailsMessage.details.projectList = projectList
+        
+        //Set new project to local storage, can be accessed elsewhere
+        await chrome.storage.local.set(request.details.projectDetails);
 
         //Prompt action script to add new project details
         chrome.runtime.sendMessage(newProjectDetailsMessage)
 
         //Prompt content script to add new project details
-        chrome.tabs.sendMessage(currentID,
-            newProjectDetailsMessage);
-
-        await addToProjectList(request.details.projectName);
-        
-        await chrome.storage.local.set(request.details.projectDetails);
+        chrome.tabs.sendMessage(currentID, newProjectDetailsMessage);
     };
 });
+
+//Add tags message 
+
+const updateTagsMessage = new MessageTemplate("update-tags", {
+    tagsList: []
+});
+
+chrome.runtime.onMessage.addListener(async(request)=>{
+
+    if(request.message === "add-tag"){
+
+        let allProjectsRequest = await chrome.storage.local.get(["allProjectDetails"]);
+
+        let allProjects = allProjectsRequest["allProjectDetails"];
+
+    
+        allProjects["allTags"].push(request.details.tagName);
+
+        let allProjectDetailsUpdated = {
+            allProjectDetails: allProjects
+        }
+
+        await chrome.storage.local.set(allProjectDetailsUpdated);
+
+        updateTagsMessage.details.tagsList = allProjects["allTags"];
+
+        chrome.runtime.sendMessage(updateTagsMessage);
+
+    }
+});
+
+//Delete tags message
+
+chrome.runtime.onMessage.addListener(async(request)=>{
+
+    if(request.message === "delete-tag"){
+
+        let allProjectsRequest = await chrome.storage.local.get(["allProjectDetails"]);
+
+        let allProjects = allProjectsRequest["allProjectDetails"]; 
+
+        let indexToRemove = allProjects["allTags"].indexOf(request.details.tagName);
+
+
+        allProjects["allTags"].splice(indexToRemove, 1);
+
+        let allProjectDetailsUpdated = {
+            allProjectDetails: allProjects
+        }
+
+        await chrome.storage.local.set(allProjectDetailsUpdated);
+
+        updateTagsMessage.details.tagsList = allProjects["allTags"];
+
+
+        chrome.runtime.sendMessage(updateTagsMessage);
+
+    }
+});
+
+//Delete projects message
+
+const updateProjectDetailsMessage = new MessageTemplate("update-projects", {
+    projectList : [],
+    removeCurrentProjectTags: false
+});
+
+chrome.runtime.onMessage.addListener(async(request)=>{
+
+    if(request.message === "delete-project"){
+
+        console.log(request)
+
+        //Remove from all project details
+
+        let allProjectsRequest = await chrome.storage.local.get(["allProjectDetails"]);
+
+        let allProjects = allProjectsRequest["allProjectDetails"]["allProjects"];
+
+        indexToRemove = allProjects.indexOf(request.details.projectName);
+
+        allProjects.splice(indexToRemove, 1);
+
+        allProjectsRequest["allProjectDetails"]["allProjects"] = allProjects;
+
+        let updatedProjectDetails = {
+            allProjectDetails: allProjectsRequest["allProjectDetails"]
+        };
+
+        console.log(updatedProjectDetails)
+
+        await chrome.storage.local.set(updatedProjectDetails);
+
+        //Remove project details
+
+        await chrome.storage.local.remove([request.details.projectName]);
+
+        //Check current project
+
+        try{
+
+            let currentProjectRequest = await chrome.storage.local.get(["currentProject"]);
+
+            let currentProjectName = Object.keys(currentProjectRequest["currentProject"]);
+
+            if(currentProjectName[0] === request.details.projectName){
+
+                let currentProjectdetails = {
+                    currentProject: null
+                };
+
+                await chrome.storage.local.set(currentProjectdetails);
+
+                updateProjectDetailsMessage.details.removeCurrentProjectTags = true
+            };
+
+        }catch(e){
+            console.log(e);
+            console.log("No current project set")
+        }
+
+        //Set project details
+        updateProjectDetailsMessage.details.projectList = allProjects;
+
+        chrome.runtime.sendMessage(updateProjectDetailsMessage);
+    }
+
+    //Update current project
+})
+
+//Upate current project tags
+
+chrome.runtime.onMessage.addListener(async(request)=>{
+
+    if(request.message === "update-current-tags"){
+
+        //Updating current project
+
+        let currentProjectsRequest = await chrome.storage.local.get(["currentProject"]);
+
+        let [currentProjectName] = Object.keys(currentProjectsRequest["currentProject"])
+
+        let currentProjectDetails = currentProjectsRequest["currentProject"][currentProjectName]
+
+        if (request.details.action === "add"){
+
+            currentProjectDetails["tags"].push(request.details.tagName);
+
+            let updatedCurrentProjectDetails = {[currentProjectName] : currentProjectDetails}
+
+            let updatedCurrentProjectDetailsPush = {
+                currentProject: updatedCurrentProjectDetails
+            };
+
+            await chrome.storage.local.set(updatedCurrentProjectDetailsPush)
+        } else if (request.details.action = "delete"){
+
+            console.log("hello world")
+
+            let indexToRemove = currentProjectDetails["tags"].indexOf(request.details.tagName);
+
+            currentProjectDetails["tags"].splice(indexToRemove, 1);
+
+            let updatedCurrentProjectDetails = {[currentProjectName] : currentProjectDetails}
+
+            let updatedCurrentProjectDetailsPush = {
+                currentProject: updatedCurrentProjectDetails
+            };
+
+            await chrome.storage.local.set(updatedCurrentProjectDetailsPush)
+        };
+
+        //updating project with new tag information
+
+        let projectRequest = await chrome.storage.local.get([currentProjectName]);
+
+        let projectDetails = projectRequest[currentProjectName]
+
+        console.log(request)
+
+        if (request.details.action === "add"){
+
+            projectDetails["tags"].push(request.details.tagName);
+
+            let updatedCurrentProjectDetails = {[currentProjectName] : projectDetails}
+
+            await chrome.storage.local.set(updatedCurrentProjectDetails);
+
+        } else if (request.details.action === "delete"){
+
+            console.log("hello world")
+
+            let indexToRemove = projectDetails["tags"].indexOf(request.details.tagName);
+
+            console.log(projectDetails)
+
+            projectDetails["tags"].splice(indexToRemove, 1);
+
+            let updatedCurrentProjectDetails = {[currentProjectName] : projectDetails}
+
+            await chrome.storage.local.set(updatedCurrentProjectDetails)
+        };
+
+    }
+})
+
 
 
 //Listen for load events on a tab page
@@ -237,10 +464,3 @@ chrome.tabs.onUpdated.addListener(async (updatedTab)=>{
         load:"load content"
     });
 });
-
-let currentID;
-
-chrome.tabs.onActivated.addListener((result)=>{
-    currentID = result.tabId;
-
-})

@@ -1,4 +1,15 @@
 
+class MessageTemplate {
+
+    constructor(message, details){
+
+        this.message = message
+        this.details = details
+
+    };
+    
+};
+
 //Class to store state of views
 
 class View{
@@ -25,6 +36,7 @@ const defaultView = new View("default-view");
 const resultView = new View("result-view");
 const translationView = new View("translation-view");
 const addProjectView = new View("add-project-view");
+const addTagsView = new View("tags-view")
 
 function changeView(newView){
     //View object passed into change view. Set display method
@@ -53,6 +65,9 @@ const translateMainMenuButton = document.getElementById("translation-main-menu-b
 const resultMainMenuButton = document.getElementById("result-main-menu-button");
 const addMainMenuButton = document.getElementById("add-project-main-menu-button");
 
+const currentProjectManageButton = document.getElementById("current-project-manage-button")
+
+const tagsMainMenuButton = document.getElementById("tags-main-menu-button");
 
 currentProjectCreateButton.addEventListener("click", ()=>{
     changeView(addProjectView);
@@ -66,6 +81,10 @@ currentProjectTranslateButton.addEventListener("click", ()=>{
     changeView(translationView);
 })
 
+currentProjectManageButton.addEventListener("click", ()=>{
+    changeView(addTagsView);
+})
+
 translateMainMenuButton.addEventListener("click", ()=>{
     changeView(defaultView);
 })
@@ -75,6 +94,10 @@ resultMainMenuButton.addEventListener("click", ()=>{
 })
 
 addMainMenuButton.addEventListener("click", ()=>{
+    changeView(defaultView);
+})
+
+tagsMainMenuButton.addEventListener("click", ()=>{
     changeView(defaultView);
 })
 
@@ -94,65 +117,111 @@ function getTags(querySelector){
 
     }
 
-    let listOfTags  = document.querySelectorAll(`${querySelector} > li`);
-
-    for (listNode of listOfTags){
-        listNode.remove()
-    }
-
     return tagsList;
-
 };
 
-function appendNewDetailsDropDowns(newProjectDetails){
-    
-    /* 
-        When user creates new projects, urls etc, these are appended across the tracker.
-        The new Project Details is an object with the following schema:
+const updateCurrentProjectTag = new MessageTemplate("update-current-tags", {
 
-        {
-            projectName : {
-                language: string,
-                tags: [tags],
-                urls: [urls]
-            }
-        }
-    
-    */
+    tagName: "",
+    action: ""
 
+});
+
+const deleteProjectMessage = new MessageTemplate("delete-project", {
+    projectName : ""
+});
+
+async function appendAllProjectDropDown(projectList){
+    
     //creating new option element for projects
-
-
-    let newProjectName = Object.keys(newProjectDetails)[0];
-
     let projectsDropdownList = [
         currentProjectsProjectDropdown,
         searchProjectsDropdown,
         resultProjectDropdown,
         translationProjectsDropdown
-    ]
+    ];
 
-    for (dropdown of projectsDropdownList){
-        let newProjectNameElement = document.createElement("option");
+    for (let dropdown of projectsDropdownList){
 
-        newProjectNameElement.setAttribute("value", newProjectName);
+        dropdown.innerHTML = "<option value=`default`>All Projects</option>"
 
-        newProjectNameElement.innerText = newProjectName;
+        for (let project of projectList){
+            let newProjectNameElement = document.createElement("option");
 
-        dropdown.appendChild(newProjectNameElement);
-    }
+            newProjectNameElement.setAttribute("value", project);
 
-}
+            newProjectNameElement.innerText = project;
 
-class MessageTemplate {
-
-    constructor(message, details){
-
-        this.message = message
-        this.details = details
-
+            dropdown.appendChild(newProjectNameElement);
+        };
     };
+
+    allProjectsList.innerHTML = "";
+
+    for (let project of projectList){
+
     
+        const newElement = document.createElement("li");
+
+        //Create tag class
+        newElement.classList.add("vocab-tag-outer");
+
+        newElement.id = `add-tag-${project}-tag`
+
+        newElement.innerHTML = `
+        
+        <div class="vocab-tag-inner">
+            <span>${project}</span>
+        </div>
+        <div class="vocab-tag-delete" id="add-tag-${project}-delete">
+            <button> delete </button>
+        </div>
+        `
+        //Append new tag
+        allProjectsList.appendChild(newElement);
+
+        let tag = document.getElementById(`add-tag-${project}-delete`)
+
+        tag.addEventListener("click", ()=>{
+
+            //Removes list element on click
+
+            tag.parentNode.remove()
+    
+            deleteProjectMessage.details.projectName = project;
+
+            console.log(deleteProjectMessage)
+
+            chrome.runtime.sendMessage(deleteProjectMessage);
+        });
+    };
+
+    try{
+
+        let currentProject = await chrome.storage.local.get(["currentProject"]);
+    
+        let currentProjectName = Object.keys(currentProject["currentProject"]);
+    
+        currentProjectName = currentProjectName[0];
+        
+        let currentProjectDetails = currentProject["currentProject"][currentProjectName];
+
+        //Check whether current project appears in all project details list
+
+        let indexSet = projectList.indexOf(currentProjectName);
+
+        currentProjectsProjectDropdown.selectedIndex = indexSet + 1
+    
+        //get current project tags
+    
+        let currentProjectTags = currentProjectDetails["tags"];
+    
+        changeTags(currentProjectTags);
+    
+    }catch(e){
+        console.log(e);
+        console.log("No current project set")
+    }
 };
 
 //Setting tags by default.
@@ -188,65 +257,182 @@ function currentProjectTags(tags){
 
                 //Removes list element on click
 
+                let tagValue = deleteTag.previousElementSibling.innerText
+
+                updateCurrentProjectTag.details.tagName = tagValue;
+                updateCurrentProjectTag.details.action = "delete"
+
+                console.log(updateCurrentProjectTag)
+
+                //Removes list element on click
                 deleteTag.parentNode.remove()
+                
+                //Update current project settings
+                chrome.runtime.sendMessage(updateCurrentProjectTag)
 
             });
         };
-    };
+    }else{
+        currentProjectTagSelection.innerHTML = ""
+    }
 };
 
 function changeTags(tags){
+
+    //When current project is selected, the current tags are changed.
 
     //Clear current tags
 
     currentProjectTagSelection.innerHTML = "";
 
+    //Append tags to current project tags view
+
     currentProjectTags(tags);
 
     //Extracting tags list from current project details
-
-    console.log(tags)
     
-}
+};
+
+
+
+function updateTags(tagsList){
+
+    let tagDropDowns = [
+        currentProjectTagsDropdown,
+        searchTagsDropdown,
+        resultTagsDropdown,
+        translationTagsDropdown,
+        addProjectTagsDropdown,
+    ];
+
+    for(let dropdown of tagDropDowns){
+
+        //Check whether there are any tags in storage
+        if(tagsList.length === 0){
+            dropdown.innerHTML = "<option value=`default`>No Tags Created</option>"
+            
+        }else{
+
+        dropdown.innerHTML = ""
+
+            for(let t of tagsList){
+
+                let newTag = document.createElement("option");
+            
+                newTag.innerText = t;
+
+                newTag.value = t;
+
+            
+                //Append new tag
+                dropdown.appendChild(newTag);
+            } 
+        };
+    };
+
+    allTagsList.innerHTML = "";
+
+    for (let tagName of tagsList){
+
+    
+        const newElement = document.createElement("li");
+
+        //Create tag class
+        newElement.classList.add("vocab-tag-outer");
+
+        newElement.id = `add-tag-${tagName}-tag`
+
+        newElement.innerHTML = `
+        
+        <div class="vocab-tag-inner">
+            <span>${tagName}</span>
+        </div>
+        <div class="vocab-tag-delete" id="add-tag-${tagName}-delete">
+            <button> delete </button>
+        </div>
+        `
+        //Append new tag
+        allTagsList.appendChild(newElement);
+
+        let tag = document.getElementById(`add-tag-${tagName}-delete`);
+
+
+        //Add event for when tag is removed, triggers update to local storage and updates other dropdowns
+        
+        tag.addEventListener("click", ()=>{
+
+            //Removes list element on click
+
+            tag.parentNode.remove()
+
+            deleteTagMessage.details.tagName = tagName;
+
+            chrome.runtime.sendMessage(deleteTagMessage);
+        });
+    };
+};
+
 
 
 //Action load up details
 
 //Load current project details
 
+
 document.addEventListener("DOMContentLoaded", async()=>{
     console.log("this content has loaded");
 
-    //Retrieve current project details from storage
+    //Send message about current ID 
+    chrome.runtime.sendMessage("loaded")
 
-    let currentProject = await chrome.storage.local.get(["currentProject"]);
 
-    console.log(currentProject);
-    console.log(currentProject["currentProject"])
+    //Get all project details from local storage
 
-    let currentProjectName = Object.keys(currentProject["currentProject"]);
+    let allProjectDetailsRequest = await chrome.storage.local.get(["allProjectDetails"]);
 
-    currentProjectName = currentProjectName[0];
+    let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
+
+    //Append all projects in local storage
+    appendAllProjectDropDown(allProjectDetails["allProjects"]);
+
+    //Append all languages in local storage
+
+    //Append all tags in local storage
+
+    updateTags(allProjectDetails["allTags"])
+
+    //Append all urls in local storage
+
+    //Retrieve current project details from storage //REfactoring needed
+
+    try{
+
+        let currentProject = await chrome.storage.local.get(["currentProject"]);
     
-    let currentProjectDetails = currentProject["currentProject"][currentProjectName];
+        let currentProjectName = Object.keys(currentProject["currentProject"]);
+    
+        currentProjectName = currentProjectName[0];
+        
+        let currentProjectDetails = currentProject["currentProject"][currentProjectName];
 
-    //get current project tags
+        //Check whether current project appears in all project details list
 
-    let currentProjectTags = currentProjectDetails["tags"];
+        let indexSet = allProjectDetails["allProjects"].indexOf(currentProjectName);
 
-    changeTags(currentProjectTags);
-
-    //set current project value
-
-    appendNewDetailsDropDowns(currentProject["currentProject"]);
-
-    //The selectred index for the current project is always 1
-    currentProjectsProjectDropdown.selectedIndex = 1;
-
+        currentProjectsProjectDropdown.selectedIndex = indexSet + 1
+    
+        //get current project tags
+    
+        let currentProjectTags = currentProjectDetails["tags"];
+    
+        changeTags(currentProjectTags);
+    
+        
+    }catch(e){
+        console.log(e);
+        console.log("No current project set")
+    }
 });
-
-//load tags, projects and languages preferences on startup; all set in options file
-
 
 //Default Popup View logic
 
@@ -275,6 +461,7 @@ const setCurrentProjectMessage = new MessageTemplate(
     }
 )
 
+//Details of current project set by Service Worker, and details of said project updated on DOMs
 currentProjectsProjectDropdown.addEventListener("change", async()=>{
 
     //Send to Service Worker  when refactoring for security reasons.
@@ -289,10 +476,9 @@ currentProjectsProjectDropdown.addEventListener("change", async()=>{
     await chrome.runtime.sendMessage(setCurrentProjectMessage);
 });
 
+//UPdate to DOM when new project set
 chrome.runtime.onMessage.addListener((request)=>{
     if (request.message === "set-project-details"){
-
-        console.log(request.details.projectDetails)
 
         let projectName = request.details.projectName
 
@@ -303,14 +489,8 @@ chrome.runtime.onMessage.addListener((request)=>{
         //setting tags on current view 
 
         changeTags(tags);
-
-        //setting default language?
-
-        //setting urls?
     };
 });
-
-
 
 //Tag selelction
 
@@ -321,6 +501,8 @@ const currentProjectAddTagButton = document.getElementById("current-project-add-
 const currentProjectTagSelection = document.getElementById("current-project-tags-selected-list");
 
 let currentProjectTagValue;
+
+
 
 currentProjectAddTagButton.addEventListener("click", ()=>{
 
@@ -352,13 +534,31 @@ currentProjectAddTagButton.addEventListener("click", ()=>{
         //Append new tag
         currentProjectTagSelection.appendChild(newTag);
 
+        //Update current project settings.
+
+        updateCurrentProjectTag.details.tagName = currentProjectTagsDropdown.value;
+        updateCurrentProjectTag.details.action = "add"
+
+        console.log(updateCurrentProjectTag)
+
+        chrome.runtime.sendMessage(updateCurrentProjectTag)
+
         let tag = document.getElementById(`current-project-${currentProjectTagValue}-delete`)
 
         tag.addEventListener("click", ()=>{
 
-            //Removes list element on click
+            let tagValue = tag.previousElementSibling.innerText
 
+            updateCurrentProjectTag.details.tagName = tagValue;
+            updateCurrentProjectTag.details.action = "delete"
+
+            console.log(updateCurrentProjectTag)
+
+            //Removes list element on click
             tag.parentNode.remove()
+            
+            //Update current project settings
+            chrome.runtime.sendMessage(updateCurrentProjectTag)
 
         });
     };
@@ -442,8 +642,6 @@ searchSearchButton.addEventListener("click", ()=>{
         tags: getTags("#search-tags-selected-list"),
         word: searchInput.value,
     }
-
-    console.log(searchTerms);
 
     //reset search parameters
 
@@ -548,8 +746,6 @@ resultSearch.addEventListener("click", ()=>{
         url: resultURLDropdown.value,
         tags: getTags("#result-tags-selected-list")
     };
-
-    console.log(searchParameters);
 
     //reset search parameters
 
@@ -805,30 +1001,87 @@ async function createProject(newProjectDetails){
         language: newProjectDetails.language,
         tags: newProjectDetails.tags,
         urls: newProjectDetails.urls
-    }
+    };
 
     let newProjectDetailsSet = {[projectName]: projectDetails};
 
     addProjectMessage.details.projectDetails = newProjectDetailsSet;
     addProjectMessage.details.projectName = projectName;
 
+    //New project details sent to Service Worker - returns message to update DOM.
     await chrome.runtime.sendMessage(addProjectMessage);
         
 };
 
-
+//When new  project added, append new details to dropdown
 chrome.runtime.onMessage.addListener((request)=>{
     if (request.message === "add-new-project-details"){
         //If duplicate project not detected in memory, then project details added
 
-        appendNewDetailsDropDowns(request.details.projectDetails);
+        appendAllProjectDropDown(request.details.projectList);
 
-    }
-})
+    };
+});
 
-
-
-
+//Tags View 
 
 
+//Tags buttons
 
+const createNewTagInput = document.getElementById("create-new-tag-input");
+
+const createNewTagButton = document.getElementById("tags-create-new-tag-button");
+
+//lists
+
+const allTagsList = document.getElementById("add-tags-tags-list");
+
+const allProjectsList = document.getElementById("add-tags-project-list");
+
+//Add/remove tags template
+
+const addTagMessage = new MessageTemplate("add-tag", {
+    tagName: ""
+});
+
+const deleteTagMessage = new MessageTemplate("delete-tag", {
+    tagName: ""
+});
+
+//Add tags events
+
+createNewTagButton.addEventListener("click", ()=>{
+
+    let newTagInputText = createNewTagInput.value.trim();
+
+    if(newTagInputText.length > 0){
+
+        addTagMessage.details.tagName = newTagInputText
+
+        chrome.runtime.sendMessage(addTagMessage)
+
+    };
+});
+
+chrome.runtime.onMessage.addListener((request)=>{
+
+    if(request.message === "update-tags"){
+        updateTags(request.details.tagsList)
+    };
+});
+
+
+//Delete project events
+
+chrome.runtime.onMessage.addListener((request)=>{
+
+    if(request.message === "update-projects"){
+        appendAllProjectDropDown(request.details.projectList);
+
+        console.log(request)
+
+        if(request.details.removeCurrentProjectTags == true){
+            changeTags([]);
+        };     
+    };
+});

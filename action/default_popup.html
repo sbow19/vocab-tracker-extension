@@ -56,7 +56,7 @@
                         <div class="current-project-select-dropdown-wrapper">
 
                             <select name="" id="current-project-project-options">
-                                <option value="default">No Project Selected</option>
+                                <option value="default">All Projects</option>
                             </select>
 
                         </div>
@@ -73,7 +73,7 @@
                                 </span>
                             </div>
                             <div class="current-project-tagset-dropdown-wrapper">
-                                <select class="vocab-select" name="" id="current-project-tag-select">
+                                <select class="vocab-select" id="current-project-tag-select" name="current-project">
                                     <!-- New options based on tags associated with project-->
                                 </select>
                             </div>
@@ -103,7 +103,7 @@
                         </div>
 
                         <div class="current-project-delete-button-wrapper">
-                            <button class="vocab-button" id=""> Delete Project</button>
+                            <button class="vocab-button" id="current-project-manage-button">Manage Projects</button>
             
                         </div>
 
@@ -150,7 +150,7 @@
                                                 </span>
                                             </div>
                                             <div class="search-tagset-dropdown-wrapper">
-                                                <select class="vocab-select" name="" id="search-tag-select">
+                                                <select class="vocab-select" id="search-tag-select" name="search">
                                                     <option value="Spanish">Spanish</option>
                                                     <option value="Crypto">Crypto</option>
                                                     <option value="Dating">Dating</option>
@@ -341,7 +341,7 @@
                                     </span>
                                 </div>
                                 <div class="result-tagset-dropdown-wrapper">
-                                    <select class="vocab-select" name="" id="result-tag-select">
+                                    <select class="vocab-select" id="result-tag-select" name="result">
                                         <option value="Spanish">Spanish</option>
                                         <option value="Crypto">Crypto</option>
                                         <option value="Dating">Dating</option>
@@ -441,10 +441,8 @@
                                         </span>
                                     </div>
                                     <div class="translation-tagset-dropdown-wrapper">
-                                        <select class="vocab-select" name="" id="translation-tag-select">
-                                            <option value="Spanish">Spanish</option>
-                                            <option value="Crypto">Crypto</option>
-                                            <option value="Dating">Dating</option>
+                                        <select class="vocab-select" id="translation-tag-select" name="translation">
+                                            <!--Tags inserted here-->
                                         </select>
                                     </div>
                                     <div class="translation-tagset-add-wrapper">
@@ -500,7 +498,7 @@
                                     <span>Default Language</span>
                                 </div>
                                 <div class="add-project-language-input-wrapper">
-                                    <select class="add-project-language-select" name="" id="add-project-language-dropdown">
+                                    <select class="add-project-language-select" name="" id="add-project-language-dropdown" value="add-project">
                                         <option value="Spanish">Spanish</option>
                                         <option value="English">English</option>
                                     </select>
@@ -526,7 +524,7 @@
 
                                 <div class="add-project-tags-select-wrapper">
                                     <div class="add-project-tags-dropdown-wrapper">
-                                        <select name="" id="add-project-tags-dropdown">
+                                        <select id="add-project-tags-dropdown" name="add-project">
                                             <option value="Spanish">Spanish</option>
                                             <option value="Business">Business</option>
                                             <option value="Crypto">Crypto</option>
@@ -550,6 +548,62 @@
 
                 <div class="add-project-main-menu-wrapper">
                     <button class="vocab-button" id="add-project-main-menu-button">Main Menu</button>
+                </div>
+
+            </section>
+
+            <!-- add tags and languages wrapper-->
+
+            <section class="tags-view-wrapper" id="tags-view">
+                <div class="tags-management-wrapper">
+
+                    <div class="tags-add-delete-tags-wrapper">
+                        <div class="tags-add-delete-tags-title-wrapper">
+                            <span> Add / Delete Tags </span>
+                        </div>
+
+                        <div class="tags-add-delete-wrapper-inner">
+                            <div class="tags-all-tags-wrapper">
+                                
+                                <ul class="vocab-tags-selected-list" id="add-tags-tags-list" name="add-tags">
+
+                                    <!-- These list items will be appended on click-->
+                                    
+                                </ul>
+                                
+                            </div>
+                            <div class="tags-create-new-tag-wrapper">
+                                <div class="tags-input-wrapper">
+                                    <input type="text" id="create-new-tag-input">
+                                </div>
+                                <div class="tags-create-new-tags-button-wrapper">
+                                    <button class="vocab-button" id="tags-create-new-tag-button">
+                                        Add
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="tags-delete-projects-wrapper">
+                        <div class="tags-delete-projects-title-wrapper">
+                            <span> Delete Projects</span>
+                        </div>
+
+                        <div class="tags-delete-projects-list-wrapper">
+                            <ul class="vocab-tags-selected-list" id="add-tags-project-list">
+
+                                <!-- These list items will be appended on click-->
+                                
+                            </ul>
+                        </div>
+                        
+                    </div>
+                </div>
+                <div class="tags-main-menu-wrapper">
+                    <div class= "tags-main-menu-button-wrapper">
+                        <button class="vocab-button" id="tags-main-menu-button">Main Menu</button>
+                    </div>
                 </div>
 
             </section>

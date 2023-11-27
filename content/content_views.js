@@ -102,7 +102,6 @@ class TranslationView extends Views {
     };
 }
 
-
 //Popup bubble object
 
 const popupBubbleView = document.createElement("div");
@@ -176,18 +175,44 @@ translationPopup.innerHTML = `
                                 </select>
                             </div>
                         </li>
-                        <li class="translation-parameter-tags-wrapper"></li>
+                        <li class="translation-parameter-tags-wrapper">
+                            <div class="translation-tagset-title-dropdown-wrapper">
+                                <div class="translation-tagset-title-wrapper">
+                                    <span class="translation-tagset-title">
+                                        Select Tags
+                                    </span>
+                                </div>
+
+                                <div class="translation-tagset-dropdown-wrapper">
+                                    <select class="vocab-select" name="" id="translation-tag-select">
+                                        <!-- New options based on tags associated with project-->
+                                    </select>
+                                </div>
+
+                                <div class="translation-tagset-add-wrapper">
+                                    <button class="vocab-button" id="translation-add-tag">
+                                        Add
+                                    </button>
+                                </div>
+                            </div> 
+
+                            <div class="translation-tagset-selected-wrapper">
+                                <div class="vocab-tags-selected-background">
+                                    <ul class="vocab-tags-selected-list" id="translation-tags-selected-list">
+
+                                        <!-- These list items will be appended on click-->
+                                        
+                                    </ul>
+                                </div>
+                            </div>
+                        </li>
+
                         <li class="translation-parameter-save-wrapper">
                             <button class="vocab-button translation-parameter-save-button" id="translation-save">Save</button>
                         </li>
                     </ul>
-
                 </div>
-
-
         </section>
-
-
     </main>
 </div>`;
 
@@ -196,7 +221,8 @@ const translationPopupObject = new TranslationView(translationPopup, {
     output: "translation-output",
     language: "translation-parameter-language-set",
     project: "translation-parameter-project-set",
-    saveButton: "translation-save"
+    saveButton: "translation-save",
+    tags: "translation-tags-selected-list"
 })
 
 //Resources Search
@@ -216,14 +242,15 @@ async function resourceSearch(){
 let selectionText;
 
 
-
 let loadCount = 0;
 //The main htmls need to be added before listeners can be added
 chrome.runtime.onMessage.addListener(async (request)=>{
 
     if (request.load === "load content" && loadCount === 0){
 
-        loadCount = loadCount++;
+        //Make sure that content script only fired once. 
+        loadCount = loadCount + 1;
+        console.log(loadCount);
 
         function appendProject(projectName, defaultSetting){
 
@@ -256,7 +283,57 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         };
 
         function appendTags(tags){
-            console.log(tags)
+
+            if (tags.length > 0){
+
+                for (let tag of tags){
+                    let newTag = document.createElement("li");
+        
+                    //Create tag class
+                    newTag.classList.add("vocab-tag-outer");
+        
+                    newTag.id = `translation-${tag}-tag`
+        
+                    newTag.innerHTML = `
+                    
+                    <div class="vocab-tag-inner">
+                        <span>${tag}</span>
+                    </div>
+                    <div class="vocab-tag-delete" id="translation-${tag}-delete">
+                        <button> delete </button>
+                    </div>
+                    `
+        
+                    //Append new tag
+                    translationPopUpTags.appendChild(newTag);
+        
+                    let deleteTag = document.getElementById(`translation-${tag}-delete`)
+        
+                    deleteTag.addEventListener("click", ()=>{
+        
+                        //Removes list element on click
+        
+                        deleteTag.parentNode.remove()
+        
+                    });
+                };
+            };
+        };
+
+        function appendAllProjectDropDown(projectList){
+    
+            //creating new option element for projects
+    
+            for (project of projectList){
+                let newProjectNameElement = document.createElement("option");
+    
+                newProjectNameElement.setAttribute("value", project);
+    
+                newProjectNameElement.innerText = project;
+    
+                translationPopUpProject.appendChild(newProjectNameElement);
+            };
+        
         };
 
 
@@ -291,6 +368,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         let translationPopupSave = document.getElementById(translationPopupObject["elements"]["saveButton"]);
         let translationPopUpLanguage = document.getElementById(translationPopupObject["elements"]["language"]);
         let translationPopUpProject = document.getElementById(translationPopupObject["elements"]["project"]);
+        let translationPopUpTags = document.getElementById(translationPopupObject["elements"]["tags"])
         
 
         document.addEventListener("mouseup", ()=>{
@@ -396,6 +474,15 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         appendTags(currentProjectDetails["tags"]);
 
+        //Gets all other content details saved in local- storage.
+
+        let allProjectDetailsRequest = await chrome.storage.local.get(["allProjectDetails"]);
+
+        let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
+
+        //Append all projects in local storage
+        appendAllProjectDropDown(allProjectDetails["allProjects"]);
+
     };
 });
 
@@ -409,9 +496,6 @@ chrome.runtime.onMessage.addListener((request)=>{
 
             for (project of projectOptionsList){
                 
-                console.log(project.innerText)
-                console.log(projectName);
-                console.log(index)
                 if (project.innerText === projectName){
                     translationPopUpProject.selectedIndex = index;
                     return
@@ -455,7 +539,6 @@ chrome.runtime.onMessage.addListener((request)=>{
 chrome.runtime.onMessage.addListener( (request)=>{
 
     if(request.message === "add-new-project-details"){
-
 
         function appendProject(projectName, defaultSetting){
 
