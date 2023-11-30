@@ -480,15 +480,25 @@ currentProjectsProjectDropdown.addEventListener("change", async()=>{
 chrome.runtime.onMessage.addListener((request)=>{
     if (request.message === "set-project-details"){
 
-        let projectName = request.details.projectName
+        //Check whether Service Worker reset current Project to nil
+        if(request.details.projectName === "default"){
 
-        let {tags, language, urls} = request.details.projectDetails[projectName];
+            //Reset tags to nil
 
-        /*Code setting current project details to views.*/
+            changeTags([]);
 
-        //setting tags on current view 
+        }else{
 
-        changeTags(tags);
+            let projectName = request.details.projectName
+
+            let {tags, language, urls} = request.details.projectDetails[projectName];
+
+            /*Code setting current project details to views.*/
+
+            //setting tags on current view 
+
+            changeTags(tags);
+        };
     };
 });
 

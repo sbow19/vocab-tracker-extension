@@ -138,7 +138,7 @@ chrome.runtime.onInstalled.addListener(async(details)=>{
         let allProjectDetails = 
         {  allProjectDetails: {
                 allProjects: [],
-                allLanguages: [],
+                allLanguages: ["Spanish", "English", "German"],
                 allURLs: [],
                 allTags: []
             }
@@ -180,24 +180,44 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
     if (request.message === "set-current-project"){
 
+        console.log(request.details.currentProject)
         //Extract project name from message
         let currentProjectName = request.details.currentProject;
+
+        console.log(currentProjectName)
+
+        //Check whether we reset current project
+
+        if(currentProjectName === "`default`"){
+            //Code to reset current project
+
+            let storageCurrentProjectDetails = {"currentProject": {}};
         
-        //Get project details from local storage
-        let result = await chrome.storage.local.get([currentProjectName]);
+            await chrome.storage.local.set(storageCurrentProjectDetails);
+
+            setProjectDetailsMessage.details.projectName = "default";
+
+            console.log(setProjectDetailsMessage)
+
+        }else{
+
+            //Get project details from local storage
+            let result = await chrome.storage.local.get([currentProjectName]);
+
+            //Create new current project object    
+            let currentProjectDetails = {[currentProjectName]: result[currentProjectName]};
+
+            let storageCurrentProjectDetails = {"currentProject": currentProjectDetails};
             
-        let currentProjectDetails = {[currentProjectName]: result[currentProjectName]};
+            //Set new current project details
+            await chrome.storage.local.set(storageCurrentProjectDetails);
 
-        let storageCurrentProjectDetails = {"currentProject": currentProjectDetails};
+            //Re retrieve current project to check for bugs
+            let newResult = await chrome.storage.local.get(["currentProject"]);
 
-        await chrome.storage.local.remove("currentProject");
-        
-        await chrome.storage.local.set(storageCurrentProjectDetails);
-
-        let newResult = await chrome.storage.local.get(["currentProject"]);
-
-        setProjectDetailsMessage.details.projectDetails = newResult["currentProject"];
-        setProjectDetailsMessage.details.projectName = currentProjectName;
+            setProjectDetailsMessage.details.projectDetails = newResult["currentProject"];
+            setProjectDetailsMessage.details.projectName = currentProjectName;
+        }
 
         //Set details on popup view
         chrome.runtime.sendMessage(setProjectDetailsMessage);
@@ -275,6 +295,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
         chrome.runtime.sendMessage(updateTagsMessage);
 
+        //Prompt content script to add new project details
+        chrome.tabs.sendMessage(currentID, updateTagsMessage);
+
     }
 });
 
@@ -303,6 +326,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
 
         chrome.runtime.sendMessage(updateTagsMessage);
+
+        //Prompt content script to add new project details
+        chrome.tabs.sendMessage(currentID, updateTagsMessage);
 
     }
 });
@@ -372,9 +398,17 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         updateProjectDetailsMessage.details.projectList = allProjects;
 
         chrome.runtime.sendMessage(updateProjectDetailsMessage);
+
+        //Prompt content script to add new project details
+        chrome.tabs.sendMessage(currentID, updateProjectDetailsMessage);
     }
 
     //Update current project
+})
+
+
+const updateCurrentProjectTags = new MessageTemplate("update-current-tags", {
+    tagsList:[]
 })
 
 //Upate current project tags
@@ -402,6 +436,11 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             };
 
             await chrome.storage.local.set(updatedCurrentProjectDetailsPush)
+
+            updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"]
+
+            chrome.tabs.sendMessage(currentID, updateCurrentProjectTags)
+
         } else if (request.details.action = "delete"){
 
             console.log("hello world")
@@ -416,7 +455,11 @@ chrome.runtime.onMessage.addListener(async(request)=>{
                 currentProject: updatedCurrentProjectDetails
             };
 
-            await chrome.storage.local.set(updatedCurrentProjectDetailsPush)
+            await chrome.storage.local.set(updatedCurrentProjectDetailsPush);
+
+            updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"]
+
+            chrome.tabs.sendMessage(currentID, updateCurrentProjectTags)
         };
 
         //updating project with new tag information

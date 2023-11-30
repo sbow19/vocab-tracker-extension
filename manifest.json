@@ -9,8 +9,7 @@
 
     "content_scripts": [{
         "matches": ["<all_urls>"],
-        "js": ["content/content_views.js"],
-        "css": ["content/translation_popup.css", "content/popup_bubble.css"]
+        "js": ["content/content_views.js"]
 }],
     "permissions": [
         "activeTab",
