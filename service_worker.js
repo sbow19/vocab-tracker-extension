@@ -1,4 +1,22 @@
+//Imports 
+import { VocabDatabase } from "/database/database.js"
 
+/*
+
+Chrome local object structure
+
+index: default
+
+project, (string)
+foreign_word, (string)
+target_language, (string)
+output_language, (string)
+tags, (array)
+translated_word, (string),
+source_url, (string)
+base_url, (string)
+
+*/
 
 //General functions
 
@@ -59,75 +77,8 @@ chrome.runtime.onInstalled.addListener((details)=>{
     //Open a new database on first install. Data will persist even after Extension is deleted
     if (details.reason === "install"){
 
-        let db;
+        VocabDatabase.openDatabase();
 
-        const request = indexedDB.open("VocabTrackerDatabase", 1);
-
-        request.onerror = (event)=>{
-
-            console.error("indexeddb failed to start");
-
-        }
-
-        request.onupgradeneeded = (event) =>{
-            
-            db = event.target.result;
-
-            //Create the object store only one per profiel at this stage, as
-            //This should be manageable
-
-            const objectStore = db.createObjectStore("vocab_default",  {
-
-
-                //Keys set to increasing values.
-                autoIncrement: true
-            
-            });
-
-
-            //The object store will contain key-value pairs, whereby the value
-            //is some object with various properties.
-            //The properties for each object is indexed by the below
-
-
-            //Create index to search by project number
-
-            objectStore.createIndex("project", "project");
-
-            //Create index to search by language
-
-            objectStore.createIndex("language", "language");
-
-            //Create index on tags
-            objectStore.createIndex("tags", "tags");
-
-            //Create index on foreign word
-            objectStore.createIndex("foreign_word", "foreign_word", {
-                unique: true
-            });
-
-            //Create index on translated word
-            objectStore.createIndex("translated_word", "translated_word");
-
-            //Create object on url
-            objectStore.createIndex("url", "url");
-
-            //Verify that the transaction was completed
-            objectStore.transaction.oncomplete = (event) =>{
-
-                console.log("object store created");
-
-            }
-        }
-
-        request.onsuccess = (event)=>{
-
-            db = event.target.result;
-
-            console.log("object store loaded")
-
-            //add error handler here
-        }
     }
 });
 
@@ -145,29 +96,18 @@ chrome.runtime.onInstalled.addListener(async(details)=>{
         };
 
         await chrome.storage.local.set(allProjectDetails);
+
+        let currentDatabaseSearch = {
+            currentDatabaseSearch:[]
+        };
+
+        await chrome.storage.local.set(currentDatabaseSearch)
     };
 });
 
 chrome.storage.local.onChanged.addListener((result)=>{
     console.log(result)
 })
-
-/*Listen to delete project
-
-chrome.runtime.onMessage.addListener((request)=>{
-
-
-    chrome.tabs.query()
-})
-
-*/
-
-//Listen to when content scripts are loaded to ensure
-
-
-/* Listen to search from other views so we can search and
-store database search temporarily*/
-
 
 const setProjectDetailsMessage = new MessageTemplate("set-project-details", {
     projectDetails: {},
@@ -188,7 +128,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         //Check whether we reset current project
 
-        if(currentProjectName === "`default`"){
+        if(currentProjectName === "default"){
             //Code to reset current project
 
             let storageCurrentProjectDetails = {"currentProject": {}};
@@ -237,7 +177,7 @@ const newProjectDetailsMessage = new MessageTemplate("add-new-project-details", 
 })
 
 //Add new project details to local storage
-chrome.runtime.onMessage.addListener(async(request, sender, sendResponse)=>{
+chrome.runtime.onMessage.addListener(async(request)=>{
     if(request.message === "add-project"){
         //Set new project details to local storage
 
@@ -344,7 +284,7 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
     if(request.message === "delete-project"){
 
-        console.log(request)
+        console.log(request);
 
         //Remove from all project details
 
@@ -352,7 +292,7 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
         let allProjects = allProjectsRequest["allProjectDetails"]["allProjects"];
 
-        indexToRemove = allProjects.indexOf(request.details.projectName);
+        let indexToRemove = allProjects.indexOf(request.details.projectName);
 
         allProjects.splice(indexToRemove, 1);
 
@@ -362,7 +302,7 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             allProjectDetails: allProjectsRequest["allProjectDetails"]
         };
 
-        console.log(updatedProjectDetails)
+        console.log(updatedProjectDetails);
 
         await chrome.storage.local.set(updatedProjectDetails);
 
@@ -380,13 +320,13 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
             if(currentProjectName[0] === request.details.projectName){
 
-                let currentProjectdetails = {
+                let currentProjectDetails = {
                     currentProject: null
                 };
 
-                await chrome.storage.local.set(currentProjectdetails);
+                await chrome.storage.local.set(currentProjectDetails);
 
-                updateProjectDetailsMessage.details.removeCurrentProjectTags = true
+                updateProjectDetailsMessage.details.removeCurrentProjectTags = true;
             };
 
         }catch(e){
@@ -401,6 +341,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
         //Prompt content script to add new project details
         chrome.tabs.sendMessage(currentID, updateProjectDetailsMessage);
+
+        //Delete all entries related to project
+        VocabDatabase.removeProject(request.details.projectName)
     }
 
     //Update current project
@@ -496,8 +439,6 @@ chrome.runtime.onMessage.addListener(async(request)=>{
     }
 })
 
-
-
 //Listen for load events on a tab page
 
 chrome.tabs.onUpdated.addListener(async (updatedTab)=>{
@@ -507,3 +448,138 @@ chrome.tabs.onUpdated.addListener(async (updatedTab)=>{
         load:"load content"
     });
 });
+
+//Listen for new text to save in database 
+
+chrome.runtime.onMessage.addListener((request)=>{
+
+    if(request.message === "add-new-text"){
+
+        VocabDatabase.openDatabase();
+
+        let newText = request.details.details;
+
+        VocabDatabase.addToDatabase(newText);
+    }
+
+});
+
+//Listen for new database retrieval request
+
+//Send  search results message
+
+let searchResultsMessage = new MessageTemplate("display-results", {
+    searchResults:[],
+    tags:false
+})
+
+chrome.runtime.onMessage.addListener(async (request)=>{
+
+    if(request.message === "fetch-data"){
+
+        console.log(request)
+
+        let searchTerms = request.details.searchTerms;
+
+        if(searchTerms.searchType === "allTags"){
+
+            let resultsList = [];
+
+            for(let tag of searchTerms.tags){
+
+                let results = await VocabDatabase.retrieveFromDatabase(searchTerms.searchType, tag);
+
+                resultsList.push(results);
+
+                console.log(results)
+
+                console.log(resultsList)
+            }
+
+            searchResultsMessage.details.searchResults = resultsList
+            searchResultsMessage.details.tags = true
+
+            chrome.runtime.sendMessage(searchResultsMessage)
+
+            let [newResultsList] = resultsList
+
+            let currentDatabaseSearch = {
+                currentDatabaseSearch: newResultsList
+            };
+
+            await chrome.storage.local.set(currentDatabaseSearch)
+
+        } else if (searchTerms.searchType === "allLanguages"){
+
+            let targetResults = await VocabDatabase.retrieveFromDatabase("targetLanguage", searchTerms.searchParameter);
+
+            let outputResults = await VocabDatabase.retrieveFromDatabase("outputLanguage", searchTerms.searchParameter);
+
+            let mergedResults = [];
+
+            //Check first array
+
+            for (let resultObject of targetResults){
+                if (!mergedResults.some(object => resultObject.foreign_word === object.foreign_word)){
+
+                    mergedResults.push(resultObject);
+                };
+            };
+
+            for (let resultObject of outputResults){
+                if (!mergedResults.some(object => resultObject.foreign_word === object.foreign_word)){
+
+                    mergedResults.push(resultObject);
+                };
+            };
+
+
+            searchResultsMessage.details.searchResults = mergedResults;
+            searchResultsMessage.details.tags = false;
+
+            chrome.runtime.sendMessage(searchResultsMessage)
+
+            let currentDatabaseSearch = {
+                currentDatabaseSearch: mergedResults
+            };
+
+            await chrome.storage.local.set(currentDatabaseSearch)
+
+
+        } else {
+
+            let results = await VocabDatabase.retrieveFromDatabase(searchTerms.searchType, searchTerms.searchParameter);
+
+            searchResultsMessage.details.searchResults = results;
+            searchResultsMessage.details.tags = false
+
+            chrome.runtime.sendMessage(searchResultsMessage);
+
+            let currentDatabaseSearch = {
+                currentDatabaseSearch: results
+            };
+
+            await chrome.storage.local.set(currentDatabaseSearch)
+        };
+    };
+});
+
+chrome.runtime.onMessage.addListener(async(request)=>{
+
+    if(request.message === "delete-entry"){
+
+        let entryValue = request.details.value;
+
+        VocabDatabase.removeFromDatabase(entryValue);
+
+        //Review exported data
+
+        let currentDatabaseSearchRequest = await chrome.storage.local.get(["currentDatabaseSearch"]);
+        
+        let currentDatabaseSearch = currentDatabaseSearchRequest["currentDatabaseSearch"];
+
+
+
+    }
+})
+

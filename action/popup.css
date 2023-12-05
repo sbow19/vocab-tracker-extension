@@ -3,6 +3,7 @@
 
 :root{ 
     --view-bg-color: rgba(120, 120, 235, 0.5);
+    --secondary-bg-color: rgba(0, 255, 255, 0.432);
     --extension-height: 350px;
     --extension-width: 600px;
     --placeholder-border: 1px solid;
@@ -24,6 +25,20 @@
 
 .vocab-title{
     font-family: var(--custom-font-title);
+}
+
+.vocab-tags-selected-list{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 9px;
+    display:flex;
+    flex-direction: column;
+}
+
+.vocab-select{
+    width: 80px;
+    overflow: ellipsis;
 }
 
 
@@ -134,7 +149,11 @@ h2.title {
 
 .current-projects-title-wrapper{
     border: var(--placeholder-border);
-    flex:1
+    flex:1;
+    background-color: var(--secondary-bg-color);
+    display:flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .current-projects-title-wrapper > h3{
@@ -149,14 +168,56 @@ h2.title {
     flex:1;
 }
 
+.current-project-language-set-wrapper{
+    flex: 1;
+    display:flex;
+    border: var(--placeholder-border);
+    justify-content: space-evenly;
+}
+
 .current-project-tagset-wrapper{
     border: var(--placeholder-border);
-    flex: 3;
+    flex:3;
+    display:flex;
+    max-height:35%;
+}
+
+.current-project-tagset-title-dropdown-wrapper{
+    height:100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    border: var(--placeholder-border);
+    min-width: 40%;
+}
+
+.current-project-tagset-selected-wrapper{
+    
+    display:flex;
+    flex-direction: column;
+    border: var(--placeholder-border);
+    margin:10px;
+    width:80%;
+    background-color: white;
+}
+
+.vocab-tags-selected-background{
+    overflow: auto;
+}
+
+#current-project-tag-select{
+    margin-left:30px
 }
 
 .current-project-button-wrapper{
     flex:1;
-    border: var(--placeholder-border)
+    display:flex;
+    border: var(--placeholder-border);
+    margin-top: 30px;
+    align-items: center;
+    justify-content: space-around;
+
 }
 
 /*search - translate wrapper*/
@@ -191,14 +252,19 @@ h2.title {
 
 /*Search wrapper styling*/
 
-.search-wrapper > div{
-    border: var(--placeholder-border);
+.search-wrapper{
+    display:flex;
 }
 
 /*search wrapper title styling*/
 
 .search-wrapper-title-wrapper{
     flex: 1;
+    display:flex;
+    justify-content: center;
+    align-items:center;
+    background-color: var(--secondary-bg-color);
+    border: var(--placeholder-border)
 }
 
 .search-wrapper-title-wrapper h4{
@@ -208,33 +274,65 @@ h2.title {
 /*search wrapper options styling*/
 
 .search-wrapper-options-wrapper{
-    flex: 4;
+    
+    display:flex;
+    border: var(--placeholder-border);
+    max-height:100%;
+    height:75%
 }
 
-.search-wrapper-options-wrapper ul{
-    margin: 0;
-    padding:0;
+.search-options-list-wrapper{
+
+    display:flex;
+    border: var(--placeholder-border);
     list-style: none;
-    border: var(--placeholder-border);
-    display: flex;
-    height:100%;
-}
-
-.search-options-list-wrapper > li{
-    border: var(--placeholder-border);
-    flex:1
-}
-
-.search-options-list-wrapper > li.search-by-tag-list-wrapper{
-    border: var(--placeholder-border);
-    flex:1;
+    padding: 0;
+    margin:0;
+    width: 100%;
+    max-height:100%;
 }
 
 .search-by-dropdown-wrapper{
-    display: flex;
+    display:flex;
     flex-direction: column;
     justify-content: space-evenly;
+    margin-right: 10px;
+    max-width: 35%;
+    border: var(--placeholder-border);
+
 }
+
+.search-by-tag-list-wrapper{
+    border: var(--placeholder-border);
+    width:100%;
+    min-height: 50%;
+    display:flex;
+    flex-direction: column;
+}
+
+.search-tagset-title-dropdown-wrapper{
+    border:var(--placeholder-border);
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+    flex:1;
+}
+
+.search-tagset-selected-wrapper{
+
+    flex:4;
+    max-height:40%;
+    border: var(--placeholder-border);
+    display:flex;
+    flex-direction: column;
+    margin:10px;
+    background-color: white;
+    overflow: auto;
+
+
+}
+
+
 
 /*Search wrapper input styling*/
 .search-wrapper-input-wrapper{
@@ -270,8 +368,16 @@ h2.title {
     margin:0;
 }
 
+.translate-buttons-wrapper{
+    display:flex;
+    flex-direction: column;
+    height: 100%;
+    flex:1;
+}
+
 .translate-input-wrapper{
     flex:2;
+    height:100%
 }
 
 .translate-input-wrapper >input{
@@ -281,6 +387,13 @@ h2.title {
 }
 
 .translate-button-wrapper{
+    margin:0;
+    flex:1;
+    position: relative;
+    left:20px;
+}
+
+.translate-language-select-wrapper{
     margin:0;
     flex:1;
     position: relative;
@@ -401,12 +514,36 @@ h2.title {
 }
 
 .translation-parameter-save-button{
-    height:50%;
+    flex:1;
     align-self: center;
-    width:55%;
+    max-width:55%;
 }
 .translation-parameter-tags-wrapper{
     flex:2;
+    max-height:60%;
+    overflow:auto;
+}
+
+.translation-tagset-title-dropdown-wrapper{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.translation-tagset-selected-wrapper{
+    height:45%;
+    max-height:45%;
+    border: var(--placeholder-border);
+    display:flex;
+    flex-direction: column;
+    margin:10px;
+    background-color: white;
+    overflow: auto;
+}
+
+.vocab-tags-selected-background{
+    max-height:100%;
+    overflow: auto;
 }
 
 /*Search results styling*/
@@ -419,7 +556,7 @@ h2.title {
 }
 
 .result-view-content-wrapper{
-    flex:2.5;
+    flex:5;
     border: var(--placeholder-border)
     ;
     height: 100%;
@@ -478,6 +615,10 @@ h2.title {
 
         .result-table-head-row > .result-table-head-tags, .result-table-content-row > .result-table-content-tags{
             flex:1;
+        }
+
+        .result-table-head-row > .result-table-head-delete, .result-table-content-row > .result-table-content-delete{
+            flex:0.5
         }
         
 
@@ -631,12 +772,12 @@ height:100%;
                     width:50%
                 }
 
-                .add-project-language-input-wrapper{
+                
+
+                .add-project-language-set-wrapper{
                     display:flex;
-                    border: var(--placeholder-border);
                     flex-direction: column;
-                    justify-content: center;
-                    flex:7;
+                    flex:7
                 }
 
                 .add-project-language-select{
@@ -647,6 +788,8 @@ height:100%;
                 flex:2.5;
                 display:flex;
                 border: var(--placeholder-border);
+                max-height:50%;
+                overflow:auto;
             }
 
                 .add-project-tags-title-wrapper{
@@ -664,6 +807,17 @@ height:100%;
                     flex-direction: column;
                     justify-content: center;
                     flex:5;
+                    max-height: 100%;
+                    overflow: auto;
+                    margin:10px;
+                    background-color: white;
+                }
+
+                .vocab-tags-selected-background{
+
+                    max-height: 100%;
+                    overflow: auto;
+
                 }
 
                 .add-project-tags-select-wrapper{

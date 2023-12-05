@@ -1,3 +1,18 @@
+class MessageTemplate {
+
+    constructor(message, details){
+
+        this.message = message
+        this.details = details
+
+    };
+    
+}
+
+let sendNewText = new MessageTemplate("add-new-text", {
+    details: {}
+});
+
 
 //Injected Elements
 
@@ -52,7 +67,7 @@ class Views {
         document.documentElement.style.setProperty("--view-bg-color", "rgba(120, 120, 235, 1)");
         document.documentElement.style.setProperty("--extension-height", "200px");
         document.documentElement.style.setProperty("--extension-width", "600px");
-        document.documentElement.style.setProperty("--placeholder-border", "1px solid");
+        document.documentElement.style.setProperty("--placeholder-border", "1px solid black");
         document.documentElement.style.setProperty("--custom-font-title", "'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif")
 
 
@@ -161,92 +176,97 @@ translationPopup.innerHTML = `
         <!--Translation popup view-->
 
         <section class="translation-view-wrapper"
-                id="translation-view">
+                    id="translation-view">
 
-                <div class="translation-input-output-wrapper">
+                    <div class="translation-input-output-wrapper">
 
-                    <div class="translation-view-title-wrapper">
-                        <span class="translation-view-title">Translate!</span>
+                        <div class="translation-view-title-wrapper">
+                            <span class="translation-view-title">Translate!</span>
+                        </div>
+
+                        <div class="translation-input-output-wrapper-inner">
+                            <div class="translation-input-text-wrapper">
+                                <label for="target-language">Select target language</label>
+                                <select name="target-language" id="translation-target-language">
+                                    <!---->
+                                 </select>
+                                <textarea name="" id="translation-input-text" cols="50" rows="3" placeholder="Input"></textarea>
+                            </div>
+                            <div class="translation-output-text-wrapper">
+                                <label for="output-language">Select output language</label>
+                                <select name="output-language" id="translation-output-language">
+                                    <!---->
+                                </select>
+                                <textarea name="" id="translation-output-text" cols="50" rows="3" placeholder="Output"></textarea>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="translation-input-output-wrapper-inner">
-                        <div class="translation-input-text-wrapper">
-                            <textarea name="" id="translation-input" cols="50" rows="3" placeholder="Input language"></textarea>
-                        </div>
-                        <div class="translation-output-text-wrapper">
-                            <textarea name="" id="translation-output" cols="50" rows="3" placeholder="Output language"></textarea>
-                        </div>
-                    </div>
 
-                </div>
-
-
-                <div class="translation-parameters-wrapper">
-                    <ul class="translation-parameters-list">
-                        <li class="translation-parameter-language-wrapper">
-                            <div class="translation-parameter-language-title-wrapper">
-                                <span class="translation-parameter-language-title">Select Language</span>
-                            </div>
-                            <div class="translation-parameter-language-set-wrapper">
-                                <select name="" id="translation-parameter-language-set">
-                                </select>
-                            </div>
-                        </li>
-                        <li class="translation-parameter-project-wrapper">
-                            <div class="translation-parameter-project-title-wrapper">
-                                <span class="translation-parameter-project-title">Select Project</span>
-                            </div>
-                            <div class="translation-parameter-project-set-wrapper">
-                                <select name="" id="translation-parameter-project-set">
-                                    <option value="default">Default</option>
-                                </select>
-                            </div>
-                        </li>
-                        <li class="translation-parameter-tags-wrapper">
-                            <div class="translation-tagset-title-dropdown-wrapper">
-                                <div class="translation-tagset-title-wrapper">
-                                    <span class="translation-tagset-title">
-                                        Select Tags
-                                    </span>
+                    <div class="translation-parameters-wrapper">
+                        <ul class="translation-parameters-list">
+                        
+                            <li class="translation-parameter-project-wrapper">
+                                <div class="translation-parameter-project-title-wrapper">
+                                    <span class="translation-parameter-project-title">Select Project</span>
                                 </div>
-
-                                <div class="translation-tagset-dropdown-wrapper">
-                                    <select class="vocab-select" name="" id="translation-tag-select">
-                                        <!-- New options based on tags associated with project-->
+                                <div class="translation-parameter-project-set-wrapper">
+                                    <select name="" id="translation-parameter-project-set">
+                                        <option value="default">Default</option>
+                                        <option value="project 1">Project 1</option>
+                                        <option value="project 2">Project 2</option>
                                     </select>
                                 </div>
+                            </li>
 
-                                <div class="translation-tagset-add-wrapper">
-                                    <button class="vocab-button" id="translation-add-tag">
-                                        Add
-                                    </button>
+
+                            <li class="translation-parameter-tags-wrapper">
+                                <div class="translation-tagset-title-dropdown-wrapper">
+                                    <div class="translation-tagset-title-wrapper">
+                                        <span class="translation-tagset-title">
+                                            Select Tags
+                                        </span>
+                                    </div>
+                                    <div class="translation-tagset-dropdown-wrapper">
+                                        <select class="vocab-select" id="translation-tag-select" name="translation">
+                                            <!--Tags inserted here-->
+                                        </select>
+                                    </div>
+                                    <div class="translation-tagset-add-wrapper">
+                                        <button class="vocab-button" id="translation-add-tag">
+                                            Add
+                                        </button>
+                                    </div>
+                                </div> 
+        
+                                <div class="translation-tagset-selected-wrapper">
+                                    <div class="vocab-tags-selected-background">
+                                        <ul class="vocab-tags-selected-list" id="translation-tags-selected-list">
+        
+                                            <!-- These list items will be appended on click-->
+                                            
+                                        </ul>
+                                    </div>
                                 </div>
-                            </div> 
 
-                            <div class="translation-tagset-selected-wrapper">
-                                <div class="vocab-tags-selected-background">
-                                    <ul class="vocab-tags-selected-list" id="translation-tags-selected-list">
+                            </li>
 
-                                        <!-- These list items will be appended on click-->
-                                        
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
 
-                        <li class="translation-parameter-save-wrapper">
-                            <button class="vocab-button translation-parameter-save-button" id="translation-save">Save</button>
-                        </li>
-                    </ul>
-                </div>
-        </section>
+                            <li class="translation-parameter-save-wrapper">
+                                <button class="vocab-button translation-parameter-save-button" id="translation-save">Save</button>
+                            </li>
+                        </ul>
+
+                    </div>
+
+
+            </section>
     </main>
 </div>`;
 
 const translationPopupObject = new TranslationView(translationPopup, {
-    input: "translation-input",
-    output: "translation-output",
-    language: "translation-parameter-language-set",
+    input: "translation-input-text",
+    output: "translation-output-text",
     project: "translation-parameter-project-set",
     saveButton: "translation-save",
     tags: "translation-tags-selected-list"
@@ -273,7 +293,7 @@ let loadCount = 0;
 //The views need to be added before listeners can be added
 chrome.runtime.onMessage.addListener(async (request)=>{
 
-    if (request.load === "load content" && loadCount === 0){
+    if (request.load === "load content"){
 
         //General reset for tags
         function appendTags(tags){
@@ -356,30 +376,68 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             }    
         }
 
-        function appendAllLanguagesDropDown(allLanguagesList){
+        async function appendAllLanguagesDropDown(allLanguagesList){
 
             //Check whether there are any tags in storage
             if(allLanguagesList.length === 0){
-                translationPopUpLanguage.innerHTML = "<option value=`default`>No Languages Set</option>"
+                translationPopUpTargetLanguage.innerHTML = "<option value=`default`>No Languages Set</option>"
+                translationPopUpOutputLanguage.innerHTML = "<option value=`default`>No Languages Set</option>"
                 
             }else{
 
-                
-            translationPopUpLanguage.innerHTML = ""
+                translationPopUpTargetLanguage.innerHTML = "";
+                translationPopUpOutputLanguage.innerHTML = "";
 
                 for(let t of allLanguagesList){
 
-                    let newTag = document.createElement("option");
+                    let newTag1 = document.createElement("option");
+                    let newTag2 = document.createElement("option")
                 
-                    newTag.innerText = t;
+                    newTag1.innerText = t;
 
-                    newTag.value = t;
+                    newTag1.value = t;
+
+                    newTag2.innerText = t;
+
+                    newTag2.value = t;
 
                 
                     //Append new tag
-                    translationPopUpLanguage.appendChild(newTag);
+                    translationPopUpTargetLanguage.appendChild(newTag1);
+                    translationPopUpOutputLanguage.appendChild(newTag2);
                 } 
-            }    
+
+                try{
+
+                    let currentProject = await chrome.storage.local.get(["currentProject"]);
+                
+                    let currentProjectName = Object.keys(currentProject["currentProject"]);
+
+                    let allProjectDetailsRequest = await chrome.storage.local.get(["allProjectDetails"]);
+
+                    let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
+
+                    let languagesList = allProjectDetails["allLanguages"]
+                
+                    currentProjectName = currentProjectName[0];
+                    
+                    let currentProjectDetails = currentProject["currentProject"][currentProjectName];
+        
+                    let currentProjectTargetLanguage = currentProjectDetails["target_language"]
+                    let currentProjectOutputLanguage = currentProjectDetails["output_language"]
+        
+                    //Check whether current project appears in all project details list
+        
+                    let indexSetTarget = languagesList.indexOf(currentProjectTargetLanguage);
+                    let indexSetOutput = languagesList.indexOf(currentProjectOutputLanguage);
+        
+                    translationPopUpTargetLanguage.selectedIndex = indexSetTarget;
+                    translationPopUpOutputLanguage.selectedIndex = indexSetOutput;
+                
+                }catch(e){
+                    console.log(e);
+                }
+            } 
         }
 
         function nodeConvert(nodeList){
@@ -390,10 +448,11 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
             for(let node of newArray){
 
-                let htmltext = node.innerHTML;
+                let htmltext = node.textContent;
+
+                htmltext = htmltext.replaceAll("\\n", "").trim();
 
                 finalArray.push(htmltext)
-
             }
 
             return finalArray
@@ -477,14 +536,12 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         let translationPopupInput =  Views.shadowDOMHost.getElementById(translationPopupObject["elements"]["input"]);
         let translationPopupOutput = Views.shadowDOMHost.getElementById(translationPopupObject["elements"]["output"]);
         let translationPopupSave = Views.shadowDOMHost.getElementById(translationPopupObject["elements"]["saveButton"]);
-        let translationPopUpLanguage = Views.shadowDOMHost.getElementById(translationPopupObject["elements"]["language"]);
+        let translationPopUpTargetLanguage = Views.shadowDOMHost.getElementById("translation-target-language");
+        let translationPopUpOutputLanguage = Views.shadowDOMHost.getElementById("translation-output-language")
         let translationPopUpProject = Views.shadowDOMHost.getElementById(translationPopupObject["elements"]["project"]);
         let translationPopUpSelectedTags = Views.shadowDOMHost.getElementById(translationPopupObject["elements"]["tags"]);
         let translationPopUpTagsList = Views.shadowDOMHost.getElementById("translation-tag-select");
 
-        //Make sure that content script only fired once. 
-        loadCount = loadCount + 1;
-        console.log(loadCount);
 
         //Setting project details on initial load
 
@@ -603,8 +660,16 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
 
             //The string which is to be adpoted by the translation view is set here. SelectionString will reset to 0 on click
+            translationPopupInput.value = selectionString;
+
+            //Output string
             translationString = selectionString;
-            translationPopupInput.value = translationString;
+            translationPopupOutput.value = translationString;
+            /*
+
+            Execute translation API code here
+
+            */
 
             translationViewClicked = true;
             bubbleViewClicked = false;
@@ -623,6 +688,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         })
         
 
+        console.log(translationPopupInput)
         //Translation popup logic
 
         translationPopupInput.addEventListener("input", ()=>{
@@ -637,16 +703,38 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         })
         
-        translationPopupSave.addEventListener("click", ()=>{
+        translationPopupSave.addEventListener("click", (e)=>{
+
+            e.stopPropagation();
+
+            //Get tags
+            let tagsNodelist = translationPopUpSelectedTags.querySelectorAll(".vocab-tag-inner");
+
+            let tagsList = nodeConvert(tagsNodelist);
+
+
+            let translationObject = {
+                foreign_word: translationPopupInput.value,
+                translated_word: translationPopupOutput.value,
+                target_language: translationPopUpTargetLanguage.value,
+                output_language: translationPopUpOutputLanguage.value,
+                source_url: "",
+                base_url:"",
+                tags: tagsList,
+                project: translationPopUpProject.value
+            };
+
+            sendNewText.details.details = translationObject;
+
+            chrome.runtime.sendMessage(sendNewText);
+
+
+            //Popup navigation logic
             Views.changeView("none");
             translationViewClicked = false;
-
             translationPopupInput.value = null;
             translationPopupOutput.value = null;
-        
-            /*
-            Execute database code
-            */
+
         });
 
         chrome.runtime.onMessage.addListener((request)=>{
@@ -656,10 +744,12 @@ chrome.runtime.onMessage.addListener(async (request)=>{
                 console.log(request)
         
                 let projectOptionsNodeList = translationPopUpProject.querySelectorAll("option");
-                let languageOptionsNodeList = translationPopUpLanguage.querySelectorAll("option");
+                let targetLanguageOptionsNodeList = translationPopUpTargetLanguage.querySelectorAll("option");
+                let outputLanguageOptionsNodeList = translationPopUpOutputLanguage.querySelectorAll("option");
 
                 let projectOptionsList = nodeConvert(projectOptionsNodeList);
-                let languageOptionsList = nodeConvert(languageOptionsNodeList);
+                let targetLanguageOptionsList = nodeConvert(targetLanguageOptionsNodeList);
+                let outputLanguageOptionsList = nodeConvert(outputLanguageOptionsNodeList);
         
                 //Check whether Service Worker reset current Project to nil
                 if(request.details.projectName === "default"){
@@ -670,7 +760,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
                     //Reset language
 
-                    translationPopUpLanguage.selectedIndex = 0;
+                    translationPopUpTargetLanguage.selectedIndex = 0;
+                    translationPopUpOutputLanguage.selectedIndex = 0;
 
                     //Reset projects
 
@@ -680,7 +771,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
                     let projectName = request.details.projectName
 
-                    let {tags, language, urls} = request.details.projectDetails[projectName];
+                    let {tags, target_language, output_language, urls} = request.details.projectDetails[projectName];
 
                     //Set tags
 
@@ -696,9 +787,13 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             
                     //Set language index
                     
-                    let indexToSetLanguage = languageOptionsList.indexOf(language);
+                    let indexToSetTargetLanguage = targetLanguageOptionsList.indexOf(target_language);
             
-                    translationPopUpLanguage.selectedIndex = indexToSetLanguage;
+                    translationPopUpTargetLanguage.selectedIndex = indexToSetTargetLanguage;
+
+                    let indexToSetOutputLanguage = outputLanguageOptionsList.indexOf(output_language);
+            
+                    translationPopUpOutputLanguage.selectedIndex = indexToSetOutputLanguage;
 
                 };
     
@@ -709,8 +804,6 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         chrome.runtime.onMessage.addListener( (request)=>{
 
             if(request.message === "add-new-project-details"){
-
-                console.log(request)
 
                 let allProjectsList = request.details.projectList;
 
@@ -724,8 +817,6 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         chrome.runtime.onMessage.addListener( (request)=>{
 
             if(request.message === "update-projects"){
-
-                console.log(request)
 
                 let allProjectsList = request.details.projectList;
 
@@ -773,10 +864,11 @@ sheet.replace(`
 /*Common variables*/
 
 :root{ 
-    --view-bg-color: rgba(120, 120, 235, 1);
-    --extension-height: 200px;
+    --view-bg-color: rgba(120, 120, 235, 0.5);
+    --secondary-bg-color: rgba(0, 255, 255, 0.432);
+    --extension-height: 350px;
     --extension-width: 600px;
-    --placeholder-border: 1px solid;
+    --placeholder-border: 1px solid black;
     --custom-font-title: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
@@ -795,6 +887,20 @@ sheet.replace(`
 
 .vocab-title{
     font-family: var(--custom-font-title);
+}
+
+.vocab-tags-selected-list{
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    font-size: 9px;
+    display:flex;
+    flex-direction: column;
+}
+
+.vocab-select{
+    width: 80px;
+    overflow: ellipsis;
 }
 
 
@@ -816,10 +922,16 @@ sheet.replace(`
 /*extension wrapper styling*/
 
 .extension-wrapper{
+    color: initial;
+    color-scheme: normal;
+    font-family:initial;
+    line-height: initial;
+    height: var(--extension-height);
     width: var(--extension-width);
     border: solid 2px;
     border-radius: 10px;
-    padding: 5px;
+    margin: 10px;
+    padding: 10px;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
@@ -832,8 +944,7 @@ sheet.replace(`
 .translation-view-wrapper{
     border: var(--placeholder-border);
     margin:0;
-    padding:0;
-    height: 250px;
+    height: 100%;
     width: 100%;
     display: flex;
     justify-content: space-around;
@@ -902,6 +1013,8 @@ sheet.replace(`
 
 /*parameters styling*/
 
+
+
 .translation-parameter-language-wrapper{
     display:flex;
     border: var(--placeholder-border);
@@ -940,12 +1053,36 @@ sheet.replace(`
 }
 
 .translation-parameter-save-button{
-    height:50%;
+    flex:1;
     align-self: center;
-    width:55%;
+    max-width:55%;
 }
 .translation-parameter-tags-wrapper{
-    flex:2.6;
+    flex:2;
+    max-height:60%;
+    overflow:auto;
+}
+
+.translation-tagset-title-dropdown-wrapper{
+    display:flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.translation-tagset-selected-wrapper{
+    height:45%;
+    max-height:45%;
+    border: var(--placeholder-border);
+    display:flex;
+    flex-direction: column;
+    margin:10px;
+    background-color: white;
+    overflow: auto;
+}
+
+.vocab-tags-selected-background{
+    max-height:100%;
+    overflow: auto;
 }
 
 .popup-bubble-wrapper{

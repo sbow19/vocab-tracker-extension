@@ -14,10 +14,12 @@
     "permissions": [
         "activeTab",
         "storage",
-        "tabs"
+        "tabs",
+        "downloads"
     ],
     "background":{
-        "service_worker": "service_worker.js"
+        "service_worker": "service_worker.js",
+        "type": "module"
     },
     "options_page": "options.html",
 
