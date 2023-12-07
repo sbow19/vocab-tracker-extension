@@ -26,7 +26,7 @@
 
             <div class="options-wrapper" id="options-wrapper">
                 <div class="options-button-inner">
-                    <button class="vocab-button" id="options-button">Options</button>
+                    <button class="header-options-button vocab-button" id="options-button">Options</button>
                 <!-- add clickable image that links to new tab-->
                 </div>
             </div>
@@ -65,24 +65,30 @@
 
                     <div class="current-project-language-set-wrapper">
 
-                        <div class="current-project-target-language-set-title-wrapper">
-                            <span>Set Target Language</span>
-                        </div> 
-
-                        <div class="current-project-target-language-set-dropdown-wrapper">
-                            <select name="" id="current-project-target-language-set">
-                                <!--Language set-->
-                            </select>
+                        <div class="current-project-target-set-wrapper-outer">
+                            <div class="current-project-target-language-set-title-wrapper">
+                                <span>Set Target Language</span>
+                            </div> 
+    
+                            <div class="current-project-target-language-set-dropdown-wrapper">
+                                <select name="" id="current-project-target-language-set">
+                                    <!--Language set-->
+                                </select>
+                            </div>
                         </div>
 
-                        <div class="current-project-output-language-set-title-wrapper">
-                            <span>Set Output Language</span>
-                        </div> 
+                        <div class="current-project-output-set-wrapper-outer">
 
-                        <div class="current-project-output-language-set-dropdown-wrapper">
-                            <select name="" id="current-project-output-language-set">
-                                <!--Language set-->
-                            </select>
+                            <div class="current-project-output-language-set-title-wrapper">
+                                <span>Set Output Language</span>
+                            </div> 
+    
+                            <div class="current-project-output-language-set-dropdown-wrapper">
+                                <select name="" id="current-project-output-language-set">
+                                    <!--Language set-->
+                                </select>
+                            </div>
+
                         </div>
 
                     </div>
@@ -254,8 +260,8 @@
                         <table class="result-table">
                             <thead class="result-table-head">
                                 <tr class="result-table-head-row">
-                                    <td class="table-cell result-table-head-fword">For. word</td>
-                                    <td class="table-cell result-table-head-tword">tran. word</td>
+                                    <td class="table-cell result-table-head-fword">Target Word</td>
+                                    <td class="table-cell result-table-head-tword">Output Word</td>
                                     <td class="table-cell result-table-head-project">Project</td>
                                     <td class="table-cell result-table-head-url">URL</td>
                                     <td class="table-cell result-table-head-tags">Tags</td>
@@ -362,7 +368,7 @@
                     <div class="translation-input-output-wrapper">
 
                         <div class="translation-view-title-wrapper">
-                            <span class="translation-view-title">Translate!</span>
+                            <span class="translation-view-title">Translate Text!</span>
                         </div>
 
                         <div class="translation-input-output-wrapper-inner">
