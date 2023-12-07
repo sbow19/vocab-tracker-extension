@@ -1,5 +1,4 @@
 
-
 class MessageTemplate {
 
     constructor(message, details){
@@ -111,7 +110,7 @@ function getTags(querySelector){
 
     let tagsList = [];
 
-    for (tag of tagsNodeList){
+    for (let tag of tagsNodeList){
 
         tagsList.push(tag.innerText)
 
@@ -223,6 +222,13 @@ async function appendAllProjectDropDown(projectList){
         console.log("No current project set")
     };
 };
+
+const translateMessage = new MessageTemplate("translate", {
+    targetLanguage:"",
+    outputLanguage:"",
+    targetText:"",
+    targetView: ""
+})
 
 async function appendProjectSearchDropdown(projects){
 
@@ -827,7 +833,7 @@ searchSearchButton.addEventListener("click", ()=>{
 
     let listOfTags  = document.querySelectorAll(`#search-tags-selected-list > li`);
 
-    for (listNode of listOfTags){
+    for (let listNode of listOfTags){
         listNode.remove()
     }
 
@@ -850,15 +856,21 @@ translateButton.addEventListener("click", (e)=>{
 
     translationInput.value = translationStringInput
 
-    /*
+    //encode translate language message on click.
 
-    Add translation logic here
-    
-    */
+    console.log(currentProjectTargetLanguageDropdown.value);
+    console.log(currentProjectOutputLanguageDropdown.value);
+    console.log(translateMessage.details.targetLanguage)
 
-    translationOutput.textContent = translationStringInput;
+    translateMessage.details.targetLanguage = currentProjectTargetLanguageDropdown.value;
+    translateMessage.details.outputLanguage = currentProjectOutputLanguageDropdown.value;
+    translateMessage.details.targetText = translationStringInput;
+    translateMessage.details.targetView = "translation-view"
 
-})
+    //Send message to initiate translation
+
+    chrome.runtime.sendMessage(translateMessage);
+});
 
 function changeLanguages(targetLanguage, outputLanguage){
 
@@ -1167,7 +1179,7 @@ resultClear.addEventListener("click", async()=>{
 
     let listOfTags  = document.querySelectorAll(`#result-tags-selected-list > li`);
 
-    for (listNode of listOfTags){
+    for (let listNode of listOfTags){
         listNode.remove()
     }
 
@@ -1298,7 +1310,19 @@ translationSave.addEventListener("click", ()=>{
     translationInput.value = "";
     translationOutput.value = "";
 
-})
+});
+
+//Populate data based on API response
+
+chrome.runtime.onMessage.addListener((request)=>{
+    if(request.message === "translation-result" && request.details.targetView === "translation-view"){
+
+        console.log(request)
+
+    };
+});
+
+//Add event  listener to input so that when no changes take place for more than  3 seconds, then translation API is fired
 
 
 //Add Project View Logic
@@ -1387,7 +1411,7 @@ addProjectCreate.addEventListener("click", async ()=>{
 
     let listOfTags  = document.querySelectorAll(`#add-project-tags-selected-list > li`);
 
-    for (listNode of listOfTags){
+    for (let listNode of listOfTags){
         listNode.remove()
     }
 

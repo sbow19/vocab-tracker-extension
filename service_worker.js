@@ -1,5 +1,6 @@
 //Imports 
-import { VocabDatabase } from "/database/database.js"
+import { VocabDatabase } from "/database/database.js";
+import { DeeplTranslate } from "/translation/translation.js"
 
 /*
 
@@ -577,9 +578,72 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         let currentDatabaseSearchRequest = await chrome.storage.local.get(["currentDatabaseSearch"]);
         
         let currentDatabaseSearch = currentDatabaseSearchRequest["currentDatabaseSearch"];
-
-
-
     }
 })
+
+
+const translationMessage = new MessageTemplate("translation-result", {
+
+    resultDetails: {},
+    targetView: ""
+
+});
+//Deeply translateButton
+
+chrome.runtime.onMessage.addListener(async (request)=>{
+
+    if(request.message === "translate"){
+
+        //Handle things like
+
+        console.log(request)
+
+        let translationTarget = request.details;
+
+        let translationResponse = await DeeplTranslate.translate(translationTarget);
+
+        //Handle network errors etc
+
+        //Encode message with response text
+        translationMessage.details.resultDetails = translationResponse;
+
+        //Send translation message to correct view 
+        translationMessage.details.targetView = request.details.targetView;
+
+        console.log(translationResponse);
+        console.log(translationMessage);
+
+    }
+
+});
+
+
+
+  
+
+
+/*
+const result = fetch(
+    "https://api-free.deepl.com/v2/translate", {
+        method: "POST",
+        mode: "no-cors",
+        headers:{
+            "Authorization": "Bearer 1f7407a3-4012-c272-4c4f-55d41925baf2:fx",
+            "User-Agent": "Chrome/119.0.0.0",
+            "Content-Type": "application/json" 
+        },
+        body: {
+            "text":["Hello, world!"],
+            "target_lang":"DE"
+        }
+    }
+).then((response)=>{
+
+    console.log(response)
+})
+*/
+
+
+
+
 
