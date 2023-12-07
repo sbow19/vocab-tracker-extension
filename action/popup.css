@@ -597,6 +597,7 @@ h2.title {
 
         .result-table tbody{
             font-size: 12px;
+            max-width:100%;
         }
 
         .result-table-head tr td{
@@ -605,32 +606,38 @@ h2.title {
 
         .result-table-content-row, .result-table-head-row{
             display:flex;
-            width:100%;
+            max-width:100%;
         }
 
         .result-table-head-row > .result-table-head-fword, .result-table-content-row > .result-table-content-fword{
             flex:1;
+            max-width:100%;
          
         }
 
         .result-table-head-row > .result-table-head-tword, .result-table-content-row > .result-table-content-tword{
             flex:1;
+            max-width:100%
         }
 
         .result-table-head-row > .result-table-head-project, .result-table-content-row > .result-table-content-project{
             flex:1;
+            max-width:100%
         }
 
         .result-table-head-row > .result-table-head-url, .result-table-content-row > .result-table-content-url{
             flex:1;
+            max-width:100%
         }
 
         .result-table-head-row > .result-table-head-tags, .result-table-content-row > .result-table-content-tags{
             flex:1;
+            max-width:100%
         }
 
         .result-table-head-row > .result-table-head-delete, .result-table-content-row > .result-table-content-delete{
-            flex:0.5
+            flex:0.5;
+            max-width:100%
         }
         
 
@@ -638,6 +645,7 @@ h2.title {
             border: var(--placeholder-border);
             overflow: auto;
             word-wrap: break-word;
+            max-height:75px;
 
         } 
 
