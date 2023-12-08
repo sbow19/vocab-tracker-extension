@@ -827,7 +827,7 @@ searchSearchButton.addEventListener("click", ()=>{
 
     let listOfTags  = document.querySelectorAll(`#search-tags-selected-list > li`);
 
-    for (listNode of listOfTags){
+    for (let listNode of listOfTags){
         listNode.remove()
     }
 
@@ -1167,7 +1167,7 @@ resultClear.addEventListener("click", async()=>{
 
     let listOfTags  = document.querySelectorAll(`#result-tags-selected-list > li`);
 
-    for (listNode of listOfTags){
+    for (let listNode of listOfTags){
         listNode.remove()
     }
 
@@ -1387,7 +1387,7 @@ addProjectCreate.addEventListener("click", async ()=>{
 
     let listOfTags  = document.querySelectorAll(`#add-project-tags-selected-list > li`);
 
-    for (listNode of listOfTags){
+    for (let listNode of listOfTags){
         listNode.remove()
     }
 
