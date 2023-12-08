@@ -111,7 +111,7 @@ function getTags(querySelector){
 
     let tagsList = [];
 
-    for (tag of tagsNodeList){
+    for (let tag of tagsNodeList){
 
         tagsList.push(tag.innerText)
 
