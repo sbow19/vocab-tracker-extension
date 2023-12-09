@@ -1188,7 +1188,7 @@ chrome.runtime.onMessage.addListener((request)=>{
 
         console.log(request)
 
-        translationOutput.innerHTML = request.details.resultDetails.translations[0].text
+        translationOutput.innerText = request.details.resultDetails.translations[0].text
 
     };
 });
