@@ -604,16 +604,16 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         //Handle network errors etc
 
-        //Encode message with response text
-        translationMessage.details.resultDetails = translationResponse;
+        let translationResults = JSON.parse(translationResponse);
 
-        //Send translation message to correct view 
-        translationMessage.details.targetView = request.details.targetView;
+         //Encode message with response text
+         translationMessage.details.resultDetails = translationResults;
 
-        console.log(translationResponse);
-        console.log(translationMessage);
+         //Send translation message to correct view 
+         translationMessage.details.targetView = request.details.targetView;
 
-    }
+         chrome.runtime.sendMessage(translationMessage);
+    };
 
 });
 

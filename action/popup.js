@@ -1,33 +1,62 @@
+import { View } from "./views.js"
+import { MessageTemplate } from "./messages.js"
 
-class MessageTemplate {
+//Messages
 
-    constructor(message, details){
+const updateCurrentProjectTag = new MessageTemplate("update-current-tags", {
 
-        this.message = message
-        this.details = details
+    tagName: "",
+    action: ""
 
-    };
-};
+});
 
-//Class to store state of views
+const deleteProjectMessage = new MessageTemplate("delete-project", {
+    projectName : ""
+});
 
-class View{
+const translateMessage = new MessageTemplate("translate", {
+    targetLanguage:"",
+    outputLanguage:"",
+    targetText:"",
+    targetView: ""
+});
 
-    constructor(idString){
-        this.view = document.getElementById(idString);
-    };
+const setCurrentProjectMessage = new MessageTemplate(
+    "set-current-project",
+    {
+        currentProject : ""
+    }
+);
 
-    static currentView = null;
+const sendDatabaseRequest = new MessageTemplate("fetch-data", {
+    searchTerms: {}
+});
 
-    static currentView(){
-        return currentView;
-    };
+const sendNewText = new MessageTemplate("add-new-text", {
+    details: {}
+});
 
-    setDisplay(value){
-        this.view.style.display = value;
-    };
+const sendDeleteMessage = new MessageTemplate("delete-entry", {
+    value: ""
+});
 
-}
+const checkProjectMessage = new MessageTemplate("check-duplicate-project", {
+    projectName : ""
+});
+
+const addProjectMessage = new MessageTemplate("add-project", {
+    projectDetails: {},
+    projectName: ""
+});
+
+const addTagMessage = new MessageTemplate("add-tag", {
+    tagName: ""
+});
+
+const deleteTagMessage = new MessageTemplate("delete-tag", {
+    tagName: ""
+});
+
 
 //view instantiations
 
@@ -37,25 +66,13 @@ const translationView = new View("translation-view");
 const addProjectView = new View("add-project-view");
 const addTagsView = new View("tags-view")
 
-function changeView(newView){
-    //View object passed into change view. Set display method
-    //called on View objects to set new display values.
-
-    let current = View.currentView
-    current.setDisplay("none")
-
-    View.currentView = newView
-    newView.setDisplay("flex");
-    
-}
-
+//Set default view
 document.addEventListener("DOMContentLoaded", ()=>{
     defaultView.setDisplay("flex")
     View.currentView = defaultView
 })
 
 //Popup navigation
-
 const currentProjectCreateButton = document.getElementById("current-project-create-button");
 const currentProjectSearchButton = document.getElementById("search-wrapper-search-button");
 const currentProjectTranslateButton = document.getElementById("search-wrapper-translate-button");
@@ -69,40 +86,39 @@ const currentProjectManageButton = document.getElementById("current-project-mana
 const tagsMainMenuButton = document.getElementById("tags-main-menu-button");
 
 currentProjectCreateButton.addEventListener("click", ()=>{
-    changeView(addProjectView);
+    View.changeView(addProjectView);
 })
 
 currentProjectSearchButton.addEventListener("click", ()=>{
-    changeView(resultView);
+    View.changeView(resultView);
 })
 
 currentProjectTranslateButton.addEventListener("click", ()=>{
-    changeView(translationView);
+    View.changeView(translationView);
 })
 
 currentProjectManageButton.addEventListener("click", ()=>{
-    changeView(addTagsView);
+    View.changeView(addTagsView);
 })
 
 translateMainMenuButton.addEventListener("click", ()=>{
-    changeView(defaultView);
+    View.changeView(defaultView);
 })
 
 resultMainMenuButton.addEventListener("click", ()=>{
-    changeView(defaultView);
+    View.changeView(defaultView);
 })
 
 addMainMenuButton.addEventListener("click", ()=>{
-    changeView(defaultView);
+    View.changeView(defaultView);
 })
 
 tagsMainMenuButton.addEventListener("click", ()=>{
-    changeView(defaultView);
+    View.changeView(defaultView);
 })
 
 
 //General functions
-
 function getTags(querySelector){
     //This function will be used for other parts of the UI
 
@@ -119,16 +135,6 @@ function getTags(querySelector){
     return tagsList;
 };
 
-const updateCurrentProjectTag = new MessageTemplate("update-current-tags", {
-
-    tagName: "",
-    action: ""
-
-});
-
-const deleteProjectMessage = new MessageTemplate("delete-project", {
-    projectName : ""
-});
 
 async function appendAllProjectDropDown(projectList){
     
@@ -223,12 +229,7 @@ async function appendAllProjectDropDown(projectList){
     };
 };
 
-const translateMessage = new MessageTemplate("translate", {
-    targetLanguage:"",
-    outputLanguage:"",
-    targetText:"",
-    targetView: ""
-})
+
 
 async function appendProjectSearchDropdown(projects){
 
@@ -331,7 +332,9 @@ function nodeConvert(nodeList){
 
 //Setting tags by default.
 
-function currentProjectTags(tags){
+function changeTags(tags){
+
+    currentProjectTagSelection.innerHTML = "";
 
     if (tags.length > 0){
 
@@ -380,22 +383,6 @@ function currentProjectTags(tags){
     }else{
         currentProjectTagSelection.innerHTML = ""
     }
-};
-
-function changeTags(tags){
-
-    //When current project is selected, the current tags are changed.
-
-    //Clear current tags
-
-    currentProjectTagSelection.innerHTML = "";
-
-    //Append tags to current project tags view
-
-    currentProjectTags(tags);
-
-    //Extracting tags list from current project details
-    
 };
 
 function updateTags(tagsList){
@@ -475,12 +462,46 @@ function updateTags(tagsList){
     };
 };
 
+function changeLanguages(targetLanguage, outputLanguage){
 
+    let targetLanguageDropdownList = [
+
+        currentProjectTargetLanguageDropdown,
+        translationTargetLanguageDropdown,
+    ]
+
+    let outputLanguageDropdownList = [
+
+        currentProjectOutputLanguageDropdown,
+        translationOutputLanguageDropdown
+    ]
+
+    for(let dropdown of targetLanguageDropdownList){
+
+        let languageNodeArray = dropdown.querySelectorAll("option");
+
+        let languageArray = nodeConvert(languageNodeArray);
+
+        let indexToSet = languageArray.indexOf(targetLanguage);
+
+        dropdown.selectedIndex = indexToSet
+    }
+
+    for(let dropdown of outputLanguageDropdownList){
+
+        let languageNodeArray = dropdown.querySelectorAll("option");
+
+        let languageArray = nodeConvert(languageNodeArray);
+
+        let indexToSet = languageArray.indexOf(outputLanguage);
+
+        dropdown.selectedIndex = indexToSet
+    };
+};
 
 //Action load up details
 
 //Load current project details
-
 
 document.addEventListener("DOMContentLoaded", async()=>{
     console.log("this content has loaded");
@@ -507,9 +528,6 @@ document.addEventListener("DOMContentLoaded", async()=>{
     updateTags(allProjectDetails["allTags"])
 
     //Append all urls in local storage
-
-    //Retrieve current project details from storage //REfactoring needed
-
 });
 
 //Default Popup View logic
@@ -532,17 +550,10 @@ const currentProjectsProjectDropdown = document.getElementById("current-project-
 
 */
 
-const setCurrentProjectMessage = new MessageTemplate(
-    "set-current-project",
-    {
-        currentProject : ""
-    }
-)
+
 
 //Details of current project set by Service Worker, and details of said project updated on DOMs
 currentProjectsProjectDropdown.addEventListener("change", async()=>{
-
-    //Send to Service Worker  when refactoring for security reasons.
 
     //Get value of dropdown
     let currentProjectName = currentProjectsProjectDropdown.value
@@ -554,7 +565,7 @@ currentProjectsProjectDropdown.addEventListener("change", async()=>{
     await chrome.runtime.sendMessage(setCurrentProjectMessage);
 });
 
-//UPdate to DOM when new project set
+//Update to DOM when new project set
 chrome.runtime.onMessage.addListener((request)=>{
     if (request.message === "set-project-details"){
 
@@ -604,7 +615,7 @@ const currentProjectTargetLanguageDropdown = document.getElementById("current-pr
 
 const currentProjectOutputLanguageDropdown = document.getElementById("current-project-output-language-set");
 
-//Tag selelction
+//Tag selection
 
 const currentProjectTagsDropdown = document.getElementById("current-project-tag-select");
 
@@ -801,17 +812,9 @@ searchParameterDropdown.addEventListener("change", async ()=>{
     };
 });
 
-//Search box input
-
-const searchInput = document.getElementById("vocab-search-by-word-input");
-
 //Search wrapper buttons logic
 
 const searchSearchButton = document.getElementById("search-wrapper-search-button");
-
-const sendDatabaseRequest = new MessageTemplate("fetch-data", {
-    searchTerms: {}
-})
 
 searchSearchButton.addEventListener("click", ()=>{
     let searchTerms = {
@@ -843,8 +846,6 @@ searchSearchButton.addEventListener("click", ()=>{
 
 const translateButton = document.getElementById("search-wrapper-translate-button");
 
-const translateLanguageSelect = document.getElementById("translate-language-select");
-
 const translateInput = document.getElementById("translate-input");
 
 translateButton.addEventListener("click", (e)=>{
@@ -872,106 +873,13 @@ translateButton.addEventListener("click", (e)=>{
     chrome.runtime.sendMessage(translateMessage);
 });
 
-function changeLanguages(targetLanguage, outputLanguage){
 
-    let targetLanguageDropdownList = [
-
-        currentProjectTargetLanguageDropdown,
-        translationTargetLanguageDropdown,
-    ]
-
-    let outputLanguageDropdownList = [
-
-        currentProjectOutputLanguageDropdown,
-        translationOutputLanguageDropdown
-    ]
-
-    for(let dropdown of targetLanguageDropdownList){
-
-        let languageNodeArray = dropdown.querySelectorAll("option");
-
-        let languageArray = nodeConvert(languageNodeArray);
-
-        let indexToSet = languageArray.indexOf(targetLanguage);
-
-        dropdown.selectedIndex = indexToSet
-    }
-
-    for(let dropdown of outputLanguageDropdownList){
-
-        let languageNodeArray = dropdown.querySelectorAll("option");
-
-        let languageArray = nodeConvert(languageNodeArray);
-
-        let indexToSet = languageArray.indexOf(outputLanguage);
-
-        dropdown.selectedIndex = indexToSet
-    }
-
-}
 
 //Results View logic
-
-//Tags select
-
-//const resultTagsDropdown = document.getElementById("result-tag-select");
-
-//const resultAddTagButton = document.getElementById("result-add-tag");
-
-//const resultTagSelection = document.getElementById("result-tags-selected-list");
-
-//let resultTagValue;
-
-/*resultAddTagButton.addEventListener("click", ()=>{
-
-    //If another element has the tag, then another tag will not be appeneded
-
-    if(!document.getElementById(`result-${resultTagsDropdown.value}-tag`)){
-
-        let newTag = document.createElement("li");
-
-        //Get select value
-
-        resultTagValue =  resultTagsDropdown.value;
-
-
-        //Create tag class
-        newTag.classList.add("vocab-tag-outer");
-
-        newTag.id = `result-${resultTagValue}-tag`
-
-        newTag.innerHTML = `
-        
-        <div class="vocab-tag-inner">
-            <span>${resultTagValue}</span>
-        </div>
-        <div class="vocab-tag-delete" id="result-${resultTagValue}-delete">
-            <button> delete </button>
-        </div>
-        `
-        //Append new tag
-        resultTagSelection.appendChild(newTag);
-
-        let tag = document.getElementById(`result-${resultTagValue}-delete`)
-
-        tag.addEventListener("click", ()=>{
-
-            //Removes list element on click
-
-            tag.parentNode.remove()
-
-        });
-    };
-});
-*/
 
 //Table
 
 const resultTableBody = document.getElementById("popup-result-table-view");
-
-const sendDeleteMessage = new MessageTemplate("delete-entry", {
-    value: ""
-})
 
 chrome.runtime.onMessage.addListener(async(request)=>{
 
@@ -1000,6 +908,8 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         }
 
         let resultTally = 0;
+
+        //Populate table with rows
         
         for(let result of results){
 
@@ -1087,7 +997,6 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             })
         };
 
-            
         let currentDatabaseSearchRequest = await chrome.storage.local.get(["currentDatabaseSearch"]);
 
         let currentDatabaseSearch = currentDatabaseSearchRequest["currentDatabaseSearch"];
@@ -1111,8 +1020,6 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         .map(e => e.join(",")) 
         .join("\n");
 
-        console.log(csvString)
-
         const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8' });
 
         try{
@@ -1131,45 +1038,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
     }
 });
 
-//URL and Project drop down
-
-//const resultURLDropdown = document.getElementById("result-parameter-url-set");
-
-//const resultProjectDropdown = document.getElementById("result-parameter-project-set");
-
 //Search and clear buttons
 
-//const resultSearch = document.getElementById("result-search");
-
 const resultClear = document.getElementById("result-clear");
-
-/*
-resultSearch.addEventListener("click", ()=>{
-
-    let searchParameters = {
-        project: resultProjectDropdown.value,
-        url: resultURLDropdown.value,
-        tags: getTags("#result-tags-selected-list")
-    };
-
-    //reset search parameters
-
-    resultURLDropdown.selectedIndex = 0;
-    resultProjectDropdown.selectedIndex = 0;
-
-    let listOfTags  = document.querySelectorAll(`#result-tags-selected-list > li`);
-
-    for (listNode of listOfTags){
-        listNode.remove()
-    }
-
-    //reset results table
-
-    resultTableBody.innerHTML = "";
-
-    
-})
-*/
 
 resultClear.addEventListener("click", async()=>{
 
@@ -1281,9 +1152,7 @@ const translationOutput = document.getElementById("translation-output-text");
 
 const translationSave = document.getElementById("translation-save");
 
-let sendNewText = new MessageTemplate("add-new-text", {
-    details: {}
-});
+
 
 translationSave.addEventListener("click", ()=>{
 
@@ -1318,6 +1187,8 @@ chrome.runtime.onMessage.addListener((request)=>{
     if(request.message === "translation-result" && request.details.targetView === "translation-view"){
 
         console.log(request)
+
+        translationOutput.innerHTML = request.details.resultDetails.translations[0].text
 
     };
 });
@@ -1421,18 +1292,7 @@ addProjectCreate.addEventListener("click", async ()=>{
 
 });
 
-const checkProjectMessage = new MessageTemplate("check-duplicate-project", {
-    projectName : ""
-});
 
-const addProjectMessage = new MessageTemplate("add-project", {
-    projectDetails: {},
-    projectName: ""
-});
-
-const getProjectMessage = new MessageTemplate("get-project", {
-    projectName: ""
-})
 
 async function createProject(newProjectDetails){
 
@@ -1491,16 +1351,6 @@ const createNewTagButton = document.getElementById("tags-create-new-tag-button")
 const allTagsList = document.getElementById("add-tags-tags-list");
 
 const allProjectsList = document.getElementById("add-tags-project-list");
-
-//Add/remove tags template
-
-const addTagMessage = new MessageTemplate("add-tag", {
-    tagName: ""
-});
-
-const deleteTagMessage = new MessageTemplate("delete-tag", {
-    tagName: ""
-});
 
 //Add tags events
 
