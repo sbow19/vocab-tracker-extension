@@ -335,54 +335,80 @@ function nodeConvert(nodeList){
 function changeTags(tags){
 
     currentProjectTagSelection.innerHTML = "";
+    translationTagSelection.innerHTML = "";
+
+    let tagsSelectionList = [
+        currentProjectTagSelection,
+        translationTagSelection
+    ]
 
     if (tags.length > 0){
 
-        for (let tag of tags){
-            let newTag = document.createElement("li");
+        for(let tagSelection of tagsSelectionList){
 
-            //Create tag class
-            newTag.classList.add("vocab-tag-outer");
+            let tagSelectionValue = tagSelection.id;
 
-            newTag.id = `current-project-${tag}-tag`
+            console.log(tagSelectionValue);
 
-            newTag.innerHTML = `
-            
-            <div class="vocab-tag-inner">
-                <span>${tag}</span>
-            </div>
-            <div class="vocab-tag-delete" id="current-project-${tag}-delete">
-                <button> delete </button>
-            </div>
-            `
+            for (let tag of tags){
+                let newTag = document.createElement("li");
 
-            //Append new tag
-            currentProjectTagSelection.appendChild(newTag);
+                //Create tag class
+                newTag.classList.add("vocab-tag-outer");
 
-            let deleteTag = document.getElementById(`current-project-${tag}-delete`)
+                newTag.id = `${tagSelectionValue}-${tag}-tag`
 
-            deleteTag.addEventListener("click", ()=>{
-
-                //Removes list element on click
-
-                let tagValue = deleteTag.previousElementSibling.innerText
-
-                updateCurrentProjectTag.details.tagName = tagValue;
-                updateCurrentProjectTag.details.action = "delete"
-
-                console.log(updateCurrentProjectTag)
-
-                //Removes list element on click
-                deleteTag.parentNode.remove()
+                newTag.innerHTML = `
                 
-                //Update current project settings
-                chrome.runtime.sendMessage(updateCurrentProjectTag)
+                <div class="vocab-tag-inner">
+                    <span>${tag}</span>
+                </div>
+                <div class="vocab-tag-delete" id="${tagSelectionValue}-${tag}-delete">
+                    <button> delete </button>
+                </div>
+                `
 
-            });
+                //Append new tag
+                tagSelection.appendChild(newTag);
+
+                let deleteTag = document.getElementById(`${tagSelectionValue}-${tag}-delete`);
+
+                if(tagSelection.id === "translation-tags-selected-list"){
+
+                    deleteTag.addEventListener("click", ()=>{
+    
+                        //Removes list element on click
+                        deleteTag.parentNode.remove()
+                    });
+
+                } else {
+
+                    deleteTag.addEventListener("click", ()=>{
+
+                        //Removes list element on click
+    
+                        let tagValue = deleteTag.previousElementSibling.innerText
+    
+                        updateCurrentProjectTag.details.tagName = tagValue;
+                        updateCurrentProjectTag.details.action = "delete"
+    
+                        console.log(updateCurrentProjectTag)
+    
+                        //Removes list element on click
+                        deleteTag.parentNode.remove()
+                        
+                        //Update current project settings
+                        chrome.runtime.sendMessage(updateCurrentProjectTag)
+    
+                    });
+
+                };
+            };
         };
     }else{
-        currentProjectTagSelection.innerHTML = ""
-    }
+        currentProjectTagSelection.innerHTML = "";
+        translationTagSelection.innerHTML = "";
+    };
 };
 
 function updateTags(tagsList){
@@ -684,6 +710,77 @@ currentProjectAddTagButton.addEventListener("click", ()=>{
 
         });
     };
+});
+
+const changeLanguageMessage = new MessageTemplate("change-language", {
+    language: "",
+    type: ""
+});
+
+//Update current projects and translation view language select
+currentProjectTargetLanguageDropdown.addEventListener("change", ()=>{
+
+    //Check whether there is no current project set
+
+    if(currentProjectsProjectDropdown.value === "default"){
+
+        let newTargetLanguage = currentProjectTargetLanguageDropdown.value;
+
+        let newOutputLanguage = currentProjectOutputLanguageDropdown.value;
+
+        changeLanguages(newTargetLanguage, newOutputLanguage);
+
+    } else{
+
+        let newProjectTargetLanguage = currentProjectTargetLanguageDropdown.value;
+
+        changeLanguageMessage.details.language = newProjectTargetLanguage;
+        changeLanguageMessage.details.type = "target";
+
+        chrome.runtime.sendMessage(changeLanguageMessage);
+    };
+
+});
+
+
+
+//Update current projects and translation view language select
+currentProjectOutputLanguageDropdown.addEventListener("change", ()=>{
+
+    if(currentProjectsProjectDropdown.value === "default"){
+
+        let newTargetLanguage = currentProjectTargetLanguageDropdown.value;
+
+        let newOutputLanguage = currentProjectOutputLanguageDropdown.value;
+
+        changeLanguages(newTargetLanguage, newOutputLanguage);
+
+    } else{
+        let newProjectOutputLanguage = currentProjectOutputLanguageDropdown.value;
+
+        changeLanguageMessage.details.language = newProjectOutputLanguage;
+        changeLanguageMessage.details.type = "output";
+
+        chrome.runtime.sendMessage(changeLanguageMessage);
+    }
+    
+});
+
+chrome.runtime.onMessage.addListener(async (request)=>{
+
+    if(request.message === "update-current-language"){
+
+
+        //Get all project details from local storage
+
+        let allProjectDetailsRequest = await chrome.storage.local.get(["allProjectDetails"]);
+
+        let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
+
+        appendAllLanguages(allProjectDetails["allLanguages"]);
+
+    };
+
 });
 
 //Current project search logic
@@ -1152,8 +1249,6 @@ const translationOutput = document.getElementById("translation-output-text");
 
 const translationSave = document.getElementById("translation-save");
 
-
-
 translationSave.addEventListener("click", ()=>{
 
     let translationResults = {
@@ -1181,6 +1276,42 @@ translationSave.addEventListener("click", ()=>{
 
 });
 
+let timer;
+
+function startTimer(){
+
+    timer = setTimeout(()=>{
+                let translationStringInput = translationInput.value;
+
+                //encode translate language message on click.
+
+                console.log(translationTargetLanguageDropdown.value);
+                console.log(translationOutputLanguageDropdown.value);
+
+                translateMessage.details.targetLanguage = translationTargetLanguageDropdown.value;
+                translateMessage.details.outputLanguage = translationOutputLanguageDropdown.value;
+                translateMessage.details.targetText = translationStringInput;
+                translateMessage.details.targetView = "translation-view";
+
+                //Send message to initiate translation
+
+                chrome.runtime.sendMessage(translateMessage);
+
+            }, 1200);
+};
+
+function resetTimer(){
+    clearTimeout(timer);
+}
+
+translationInput.addEventListener("input", (e)=>{
+    e.stopPropagation();
+
+    resetTimer();
+    startTimer();
+        
+});
+
 //Populate data based on API response
 
 chrome.runtime.onMessage.addListener((request)=>{
@@ -1188,7 +1319,7 @@ chrome.runtime.onMessage.addListener((request)=>{
 
         console.log(request)
 
-        translationOutput.innerText = request.details.resultDetails.translations[0].text
+        translationOutput.value = request.details.resultDetails.translations[0].text
 
     };
 });
@@ -1367,10 +1498,22 @@ createNewTagButton.addEventListener("click", ()=>{
     };
 });
 
+//Only use when global tag list is added to or taken away from
 chrome.runtime.onMessage.addListener((request)=>{
 
     if(request.message === "update-tags"){
         updateTags(request.details.tagsList)
+    };
+});
+
+
+//Use when current project tags is added to or taken away from
+chrome.runtime.onMessage.addListener((request)=>{
+
+    console.log(request)
+
+    if(request.message === "update-current-tags"){
+        changeTags(request.details.tagsList)
     };
 });
 

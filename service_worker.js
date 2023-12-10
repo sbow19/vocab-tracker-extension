@@ -90,7 +90,37 @@ chrome.runtime.onInstalled.addListener(async(details)=>{
         let allProjectDetails = 
         {  allProjectDetails: {
                 allProjects: [],
-                allLanguages: ["Spanish", "English", "German"],
+                allLanguages: [
+                    "Spanish", 
+                    "English", 
+                    "German",
+                    "Bulgarian",
+                    "Czech",
+                    "Danish",
+                    "Greek",
+                    "Estonian",
+                    "Finnish",
+                    "French",
+                    "Hungarian",
+                    "Indonesian",
+                    "Italian",
+                    "Japanese",
+                    "Korean",
+                    "Lithuanian",
+                    "Latvian",
+                    "Norwegian",
+                    "Dutch",
+                    "Polish",
+                    "Portuguese",
+                    "Romanian",
+                    "Russian",
+                    "Slovak",
+                    "Slovenian",
+                    "Swedish",
+                    "Turkish",
+                    "Ukrainian",
+                    "Chinese"
+                ],
                 allURLs: [],
                 allTags: []
             }
@@ -383,7 +413,8 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
             updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"]
 
-            chrome.tabs.sendMessage(currentID, updateCurrentProjectTags)
+            chrome.tabs.sendMessage(currentID, updateCurrentProjectTags);
+            chrome.runtime.sendMessage(updateCurrentProjectTags);
 
         } else if (request.details.action = "delete"){
 
@@ -404,6 +435,7 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"]
 
             chrome.tabs.sendMessage(currentID, updateCurrentProjectTags)
+            chrome.runtime.sendMessage(updateCurrentProjectTags)
         };
 
         //updating project with new tag information
@@ -439,6 +471,61 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
     }
 })
+
+
+
+//update current language
+
+const updateCurrentLanguage = new MessageTemplate("update-current-language")
+
+chrome.runtime.onMessage.addListener(async (request)=>{
+
+    if (request.message=== "change-language" && request.details.type === "target"){
+
+        try{
+            //Get project details from local storage
+            let result = await chrome.storage.local.get(["currentProject"]);
+
+            let currentProject = result["currentProject"];
+
+            let [currentProjectName] = Object.keys(currentProject)
+
+            currentProject[currentProjectName].target_language = request.details.language;
+
+            let storageCurrentProjectDetails = {"currentProject": currentProject};
+            
+            //Set new current project details
+            await chrome.storage.local.set(storageCurrentProjectDetails);
+
+            chrome.runtime.sendMessage(updateCurrentLanguage);
+
+        } catch (e){
+            console.log(e);
+        }
+    } else if (request.message=== "change-language" && request.details.type === "output"){
+
+        try{
+            //Get project details from local storage
+            let result = await chrome.storage.local.get(["currentProject"]);
+
+            let currentProject = result["currentProject"];
+
+            let [currentProjectName] = Object.keys(currentProject)
+
+            currentProject[currentProjectName].output_language = request.details.language;
+
+            let storageCurrentProjectDetails = {"currentProject": currentProject};
+            
+            //Set new current project details
+            await chrome.storage.local.set(storageCurrentProjectDetails);
+
+            chrome.runtime.sendMessage(updateCurrentLanguage);
+
+        } catch (e){
+            console.log(e);
+        };
+    };
+});
 
 //Listen for load events on a tab page
 
