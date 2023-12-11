@@ -484,41 +484,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
                 translationPopUpProject.selectedIndex = 0
 
             }
-                
-
-        }
-
-        async function setLanguageDropDown(){
-
-        try{
-            let allProjectDetailsRequest = await chrome.storage.local.get(["allProjectDetails"]);
-
-            let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
-
-            let currentProjectRequest = await chrome.storage.local.get(["currentProject"]);
-
-            let currentProject = currentProjectRequest["currentProject"];
-
-            let [currentProjectName] = Object.keys(currentProject);
-
-            let currentProjectDetails = currentProject[currentProjectName];
-
-            //set index of language
-
-            let language = currentProjectDetails["language"]
-
-            let indexToSetLanguage = allProjectDetails["allLanguages"].indexOf(language)
-
-            console.log(translationPopUpLanguage)
-
-            translationPopUpLanguage.selectedIndex = indexToSetLanguage
-        
-        } catch(e){
-
-            console.log(e)
-        }
-
-        }
+        };
 
         //Setting Shadow DOM host on load
         Views.setShadowDOMHost(sheet)
@@ -578,17 +544,21 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
             translationPopUpProject.selectedIndex = indexToSetProject + 1
 
-            //set index of language
+            //set index of target language
 
-            let language = currentProjectDetails["language"]
+            let targetLanguage = currentProjectDetails["target_language"]
 
-            let indexToSetLanguage = allProjectDetails["allLanguages"].indexOf(language)
+            let indexToSetTargetLanguage = allProjectDetails["allLanguages"].indexOf(targetLanguage)
 
-            console.log(translationPopUpLanguage)
+            translationPopUpTargetLanguage.selectedIndex = indexToSetTargetLanguage;
 
-            translationPopUpLanguage.selectedIndex = indexToSetLanguage
+            //set index of output language
 
-            console.log(language);
+            let outputLanguage = currentProjectDetails["output_language"]
+
+            let indexToSetOutputLanguage = allProjectDetails["allLanguages"].indexOf(outputLanguage)
+
+            translationPopUpTargetLanguage.selectedIndex = indexToSetOutputLanguage
 
             //set tags
 
@@ -617,7 +587,6 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         let bubbleViewClicked = false;
 
         let selectionString;
-        let translationString;
 
         document.addEventListener("mouseup", ()=>{
 
@@ -650,7 +619,9 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         });
 
         
-        Views.shadowDOMHost.getElementById(popupBubbleObject["elements"]["mainButton"]).addEventListener("click", ()=>{
+        Views.shadowDOMHost.getElementById(popupBubbleObject["elements"]["mainButton"]).addEventListener("click", (e)=>{
+
+            e.stopPropagation();
 
             //If the popup bubble is clicked , then the translation view is set, and the popup bubble reset
             Views.changeView(translationPopupObject.view);
@@ -662,14 +633,9 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             //The string which is to be adpoted by the translation view is set here. SelectionString will reset to 0 on click
             translationPopupInput.value = selectionString;
 
-            //Output string
-            translationString = selectionString;
-            translationPopupOutput.value = translationString;
-            /*
-
-            Execute translation API code here
-
-            */
+            //These functions start the API call
+            resetTimer();
+            startTimer();
 
             translationViewClicked = true;
             bubbleViewClicked = false;
@@ -687,21 +653,6 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             translationPopupOutput.value = null;
         })
         
-
-        console.log(translationPopupInput)
-        //Translation popup logic
-
-        translationPopupInput.addEventListener("input", ()=>{
-            console.log(translationPopupInput.value)
-
-            /*add API translation code
-            Add added text to cache which has a timer on how long since the last input
-            if the input is longer than 2 seconds, then the API call is made. This helps prevent issues 
-            with rate limiting.*/
-
-            translationPopupOutput.value = translationPopupInput.value
-
-        })
         
         translationPopupSave.addEventListener("click", (e)=>{
 
@@ -803,6 +754,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         //Update new projects
         chrome.runtime.onMessage.addListener( (request)=>{
 
+            console.log(request)
+
             if(request.message === "add-new-project-details"){
 
                 let allProjectsList = request.details.projectList;
@@ -832,14 +785,27 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             };
         });
 
+        //Setting project within content view
+
+        translationPopUpProject.addEventListener("change", async ()=>{
+
+            let currentProjectName = translationPopUpProject.value;
+
+            let currentProjectDetailsRequest = await chrome.storage.local.get([currentProjectName]);
+
+            let currentProjectDetails = currentProjectDetailsRequest[currentProjectName];
+
+            let currentProjectTags = currentProjectDetails?.tags;
+
+            appendTags(currentProjectTags);
+        });
+
         //Update tags
 
         chrome.runtime.onMessage.addListener((request)=>{
 
             if(request.message === "update-tags"){
-                appendAllTagsDropDown(request.details.tagsList)
-
-                
+                appendAllTagsDropDown(request.details.tagsList)   
             }
         });
 
@@ -851,9 +817,89 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
             };
         });
+
+        //Translation logic
+
+        const translateMessage = new MessageTemplate("translate", {
+            targetLanguage:"",
+            outputLanguage:"",
+            targetText:"",
+            targetView: ""
+        });
+
+        let timer;
+
+        function startTimer(){
+
+            timer = setTimeout(()=>{
+                        let translationStringInput = translationPopupInput.value;
+
+                        //encode translate language message on click.
+
+                        translateMessage.details.targetLanguage = translationPopUpTargetLanguage.value;
+                        translateMessage.details.outputLanguage = translationPopUpOutputLanguage.value;
+                        translateMessage.details.targetText = translationStringInput;
+                        translateMessage.details.targetView = "content-view";
+
+                        //Send message to initiate translationS
+
+                        chrome.runtime.sendMessage(translateMessage);
+
+                    }, 500);
+        };
+
+        function resetTimer(){
+            clearTimeout(timer);
+        }
+
+        translationPopupInput.addEventListener("input", (e)=>{
+            e.stopPropagation();
+
+            resetTimer();
+            startTimer();
+                
+        });
+
+        chrome.runtime.onMessage.addListener((request)=>{
+            if(request.message === "translation-result" && request.details.targetView === "content-view"){
+        
+                console.log(request)
+        
+                translationPopupOutput.value = request.details.resultDetails.translations[0].text
+        
+            };
+        });
+
+        //update language on change
+        chrome.runtime.onMessage.addListener((request)=>{
+
+            if(request.message === "update-current-language"){
+
+                appendAllLanguagesDropDown(allProjectDetails["allLanguages"]);
+
+            };
+        });
+
+        //Trigger translation when changing languages
+        translationPopUpTargetLanguage.addEventListener("change", (e)=>{
+
+            e.stopPropagation();
+        
+            resetTimer();
+            startTimer();
+        
+        });
+        
+        translationPopUpOutputLanguage.addEventListener("change", (e)=>{
+        
+            e.stopPropagation();
+        
+            resetTimer();
+            startTimer();
+        });
+        
     };
 });
-
 
 
 //CSS  Styles for Shadow DOM 

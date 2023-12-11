@@ -38,11 +38,14 @@ async function addToProjectList(newProjectName){
     return newAllProjectDetails["allProjects"]
 };
 
-//Set current tab ID globally.
-let currentID;
+//Set current tab in local storage
 
 chrome.tabs.onActivated.addListener((result)=>{
-    currentID = result.tabId;
+
+    let currentIDObject = {currentID:""}
+    currentIDObject.currentID = result.tabId;
+
+    chrome.storage.local.set(currentIDObject)
 
 });
 
@@ -54,7 +57,12 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         // `tab` will either be a `tabs.Tab` instance or `undefined`.
         let [tab] = await chrome.tabs.query(queryOptions);
         console.log(tab)
-        currentID = tab.id;
+
+        let currentIDObject = {currentID:""}
+
+        currentIDObject.currentID = tab.tabId;
+
+        chrome.storage.local.set(currentIDObject)
     };
 });
 
@@ -195,6 +203,9 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         //Set content view to set current project
 
+        let currentIDRequest = await chrome.storage.local.get(["currentID"])
+        let currentID = currentIDRequest["currentID"]
+
         chrome.tabs.sendMessage(currentID,
             setProjectDetailsMessage);
     };
@@ -235,6 +246,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         chrome.runtime.sendMessage(newProjectDetailsMessage)
 
         //Prompt content script to add new project details
+        let currentIDRequest = await chrome.storage.local.get(["currentID"])
+        let currentID = currentIDRequest["currentID"]
+
         chrome.tabs.sendMessage(currentID, newProjectDetailsMessage);
     };
 });
@@ -267,6 +281,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         chrome.runtime.sendMessage(updateTagsMessage);
 
         //Prompt content script to add new project details
+        let currentIDRequest = await chrome.storage.local.get(["currentID"])
+        let currentID = currentIDRequest["currentID"]
+
         chrome.tabs.sendMessage(currentID, updateTagsMessage);
 
     }
@@ -299,6 +316,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         chrome.runtime.sendMessage(updateTagsMessage);
 
         //Prompt content script to add new project details
+        let currentIDRequest = await chrome.storage.local.get(["currentID"])
+        let currentID = currentIDRequest["currentID"]
+
         chrome.tabs.sendMessage(currentID, updateTagsMessage);
 
     }
@@ -371,6 +391,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         chrome.runtime.sendMessage(updateProjectDetailsMessage);
 
         //Prompt content script to add new project details
+        let currentIDRequest = await chrome.storage.local.get(["currentID"])
+        let currentID = currentIDRequest["currentID"]
+
         chrome.tabs.sendMessage(currentID, updateProjectDetailsMessage);
 
         //Delete all entries related to project
@@ -413,6 +436,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
             updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"]
 
+            let currentIDRequest = await chrome.storage.local.get(["currentID"])
+            let currentID = currentIDRequest["currentID"]
+
             chrome.tabs.sendMessage(currentID, updateCurrentProjectTags);
             chrome.runtime.sendMessage(updateCurrentProjectTags);
 
@@ -433,6 +459,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             await chrome.storage.local.set(updatedCurrentProjectDetailsPush);
 
             updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"]
+
+            let currentIDRequest = await chrome.storage.local.get(["currentID"])
+            let currentID = currentIDRequest["currentID"]
 
             chrome.tabs.sendMessage(currentID, updateCurrentProjectTags)
             chrome.runtime.sendMessage(updateCurrentProjectTags)
@@ -497,7 +526,16 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             //Set new current project details
             await chrome.storage.local.set(storageCurrentProjectDetails);
 
+            //Change language settings on project
+
+            await chrome.storage.local.set(currentProject);
+
             chrome.runtime.sendMessage(updateCurrentLanguage);
+
+            let currentIDRequest = await chrome.storage.local.get(["currentID"])
+            let currentID = currentIDRequest["currentID"]
+
+            chrome.tabs.sendMessage(currentID, updateCurrentLanguage);
 
         } catch (e){
             console.log(e);
@@ -519,7 +557,16 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             //Set new current project details
             await chrome.storage.local.set(storageCurrentProjectDetails);
 
+            //Change language settings on project
+
+            await chrome.storage.local.set(currentProject);
+
             chrome.runtime.sendMessage(updateCurrentLanguage);
+
+            let currentIDRequest = await chrome.storage.local.get(["currentID"])
+            let currentID = currentIDRequest["currentID"]
+
+            chrome.tabs.sendMessage(currentID, updateCurrentLanguage);
 
         } catch (e){
             console.log(e);
@@ -589,10 +636,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
             chrome.runtime.sendMessage(searchResultsMessage)
 
-            let [newResultsList] = resultsList
-
             let currentDatabaseSearch = {
-                currentDatabaseSearch: newResultsList
+                currentDatabaseSearch: resultsList
             };
 
             await chrome.storage.local.set(currentDatabaseSearch)
@@ -679,7 +724,7 @@ const translationMessage = new MessageTemplate("translation-result", {
 
 chrome.runtime.onMessage.addListener(async (request)=>{
 
-    if(request.message === "translate"){
+    if(request.message === "translate" && request.details.targetView === "translation-view"){
 
         //Handle things like
 
@@ -700,37 +745,30 @@ chrome.runtime.onMessage.addListener(async (request)=>{
          translationMessage.details.targetView = request.details.targetView;
 
          chrome.runtime.sendMessage(translationMessage);
-    };
+
+    } else if (request.message === "translate" && request.details.targetView === "content-view"){
+        //Handle things like
+
+        console.log(request)
+
+        let translationTarget = request.details;
+
+        let translationResponse = await DeeplTranslate.translate(translationTarget);
+
+        //Handle network errors etc
+
+        let translationResults = JSON.parse(translationResponse);
+
+        //Encode message with response text
+        translationMessage.details.resultDetails = translationResults;
+
+        //Send translation message to correct view 
+        translationMessage.details.targetView = request.details.targetView;
+
+        let currentIDRequest = await chrome.storage.local.get(["currentID"])
+        let currentID = currentIDRequest["currentID"]
+
+        chrome.tabs.sendMessage(currentID, translationMessage);
+    }
 
 });
-
-
-
-  
-
-
-/*
-const result = fetch(
-    "https://api-free.deepl.com/v2/translate", {
-        method: "POST",
-        mode: "no-cors",
-        headers:{
-            "Authorization": "Bearer 1f7407a3-4012-c272-4c4f-55d41925baf2:fx",
-            "User-Agent": "Chrome/119.0.0.0",
-            "Content-Type": "application/json" 
-        },
-        body: {
-            "text":["Hello, world!"],
-            "target_lang":"DE"
-        }
-    }
-).then((response)=>{
-
-    console.log(response)
-})
-*/
-
-
-
-
-

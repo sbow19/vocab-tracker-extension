@@ -1,5 +1,6 @@
 import { View } from "./views.js"
 import { MessageTemplate } from "./messages.js"
+import { Sanitiser } from "./sanitiser.js"
 
 //Messages
 
@@ -952,22 +953,25 @@ translateButton.addEventListener("click", (e)=>{
 
     translateInput.value = "";
 
-    translationInput.value = translationStringInput
+    let inputStatus = Sanitiser.checkTranslationInput(translationStringInput);
 
-    //encode translate language message on click.
+    if(inputStatus == true){
 
-    console.log(currentProjectTargetLanguageDropdown.value);
-    console.log(currentProjectOutputLanguageDropdown.value);
-    console.log(translateMessage.details.targetLanguage)
+        //encode translate language message on click.
 
-    translateMessage.details.targetLanguage = currentProjectTargetLanguageDropdown.value;
-    translateMessage.details.outputLanguage = currentProjectOutputLanguageDropdown.value;
-    translateMessage.details.targetText = translationStringInput;
-    translateMessage.details.targetView = "translation-view"
+        translateMessage.details.targetLanguage = currentProjectTargetLanguageDropdown.value;
+        translateMessage.details.outputLanguage = currentProjectOutputLanguageDropdown.value;
+        translateMessage.details.targetText = translationStringInput;
+        translateMessage.details.targetView = "translation-view";
 
-    //Send message to initiate translation
+        //Send message to initiate translation
 
-    chrome.runtime.sendMessage(translateMessage);
+        chrome.runtime.sendMessage(translateMessage);
+
+    } else {
+
+        translationOutput.value = "Max character limit reached. Only 200 characters permitted"
+    }
 });
 
 
@@ -997,7 +1001,28 @@ chrome.runtime.onMessage.addListener(async(request)=>{
         }
 
         if(request.details.tags == true){
-            results = request.details.searchResults[0]
+
+            let resultsArrays = request.details.searchResults;
+
+            let uniqueValues = [];
+
+            results = [];
+
+            for(let array of resultsArrays){
+
+                for(let result of array){
+
+                    if(!uniqueValues.some((element)=>{result.foreign_word === element})){
+
+                        uniqueValues.push(result.foreign_word);
+                        results.push(result);
+                    }
+
+                }
+            }
+
+            console.log(uniqueValues);
+            console.log(results)
 
         } else {
 
@@ -1251,6 +1276,8 @@ const translationSave = document.getElementById("translation-save");
 
 translationSave.addEventListener("click", ()=>{
 
+    /*add logic to clean input, as it is saved in the database*/
+
     let translationResults = {
         foreign_word: translationInput.value,
         translated_word: translationOutput.value,
@@ -1276,12 +1303,34 @@ translationSave.addEventListener("click", ()=>{
 
 });
 
+translationOutputLanguageDropdown.addEventListener("change", (e)=>{
+
+    e.stopPropagation();
+
+    resetTimer();
+    startTimer();
+
+});
+
+translationTargetLanguageDropdown.addEventListener("change", (e)=>{
+
+    e.stopPropagation();
+
+    resetTimer();
+    startTimer();
+
+});
+
 let timer;
 
 function startTimer(){
 
     timer = setTimeout(()=>{
-                let translationStringInput = translationInput.value;
+            let translationStringInput = translationInput.value;
+
+            let inputStatus = Sanitiser.checkTranslationInput(translationStringInput);
+
+            if(inputStatus == true){
 
                 //encode translate language message on click.
 
@@ -1297,7 +1346,13 @@ function startTimer(){
 
                 chrome.runtime.sendMessage(translateMessage);
 
-            }, 1200);
+            } else {
+
+                translationOutput.value = "Max character limit reached. Only 200 characters permitted"
+
+            }
+
+        }, 1000);
 };
 
 function resetTimer(){
@@ -1519,7 +1574,6 @@ chrome.runtime.onMessage.addListener((request)=>{
 
 
 //Delete project events
-
 chrome.runtime.onMessage.addListener((request)=>{
 
     if(request.message === "update-projects"){
