@@ -71,7 +71,7 @@ export class DeeplTranslate{
             console.log(requestOptions)
 
             try{
-                let apiResponse = await fetch('http://localhost:3000/api/data', requestOptions);
+                let apiResponse = await fetch('http://149.100.159.55:3000/api', requestOptions);
                 
                 let response = await apiResponse.text();
 

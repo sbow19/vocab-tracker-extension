@@ -736,6 +736,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         //Handle network errors etc
 
+        console.log(translationResponse)
+
         let translationResults = JSON.parse(translationResponse);
 
          //Encode message with response text
