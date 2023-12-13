@@ -952,6 +952,7 @@ translateButton.addEventListener("click", (e)=>{
     let translationStringInput = translateInput.value;
 
     translateInput.value = "";
+    translationInput.value = translationStringInput;
 
     let inputStatus = Sanitiser.checkTranslationInput(translationStringInput);
 
