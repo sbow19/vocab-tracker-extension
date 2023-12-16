@@ -73,9 +73,12 @@ export class DeeplTranslate{
             try{
                 let apiResponse = await fetch('http://149.100.159.55:3000/api', requestOptions);
                 
-                let response = await apiResponse.text();
+                let response = await apiResponse.json();
 
-                resolve(response);
+                console.log(response)
+
+                //return translation which was nested in the retured response object
+                resolve(response.translations[0]);
         
             }catch (error) {
                 console.error(error);

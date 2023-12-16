@@ -590,13 +590,23 @@ chrome.runtime.onMessage.addListener((request)=>{
 
     if(request.message === "add-new-text"){
 
-        VocabDatabase.openDatabase();
+        //Check whether there is any text sent from popup or content views
 
-        let newText = request.details.details;
+        console.log(request)
 
-        VocabDatabase.addToDatabase(newText);
-    }
+        let translationInput = request.details.details.foreign_word.trim()
 
+        if(translationInput === ""){
+            console.log("no text submitted")
+        } else {
+
+            VocabDatabase.openDatabase();
+
+            let newText = request.details.details;
+
+            VocabDatabase.addToDatabase(newText);
+        };
+    };
 });
 
 //Listen for new database retrieval request
@@ -738,15 +748,13 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         console.log(translationResponse)
 
-        let translationResults = JSON.parse(translationResponse);
+        //Encode message with response text
+        translationMessage.details.resultDetails = translationResponse.text;
 
-         //Encode message with response text
-         translationMessage.details.resultDetails = translationResults;
+        //Send translation message to correct view 
+        translationMessage.details.targetView = request.details.targetView;
 
-         //Send translation message to correct view 
-         translationMessage.details.targetView = request.details.targetView;
-
-         chrome.runtime.sendMessage(translationMessage);
+        chrome.runtime.sendMessage(translationMessage);
 
     } else if (request.message === "translate" && request.details.targetView === "content-view"){
         //Handle things like
@@ -757,12 +765,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
         let translationResponse = await DeeplTranslate.translate(translationTarget);
 
-        //Handle network errors etc
-
-        let translationResults = JSON.parse(translationResponse);
-
         //Encode message with response text
-        translationMessage.details.resultDetails = translationResults;
+        translationMessage.details.resultDetails = translationResponse.text;
 
         //Send translation message to correct view 
         translationMessage.details.targetView = request.details.targetView;

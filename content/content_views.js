@@ -623,6 +623,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
             e.stopPropagation();
 
+            console.log(e)
+
             //If the popup bubble is clicked , then the translation view is set, and the popup bubble reset
             Views.changeView(translationPopupObject.view);
 
@@ -752,9 +754,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         });
 
         //Update new projects
-        chrome.runtime.onMessage.addListener( (request)=>{
-
-            console.log(request)
+        chrome.runtime.onMessage.addListener((request)=>{
 
             if(request.message === "add-new-project-details"){
 
@@ -855,6 +855,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         translationPopupInput.addEventListener("input", (e)=>{
             e.stopPropagation();
 
+            console.log(e)
+
             resetTimer();
             startTimer();
                 
@@ -865,7 +867,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         
                 console.log(request)
         
-                translationPopupOutput.value = request.details.resultDetails.translations[0].text
+                translationPopupOutput.value = request.details.resultDetails
         
             };
         });

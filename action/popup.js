@@ -1011,19 +1011,18 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
             for(let array of resultsArrays){
 
-                for(let result of array){
+                for(let entry of array){
 
-                    if(!uniqueValues.some((element)=>{result.foreign_word === element})){
+                    console.log(uniqueValues)
 
-                        uniqueValues.push(result.foreign_word);
-                        results.push(result);
+                    if(!uniqueValues.some(element=>entry.foreign_word === element)){
+
+                        uniqueValues.push(entry.foreign_word);
+                        results.push(entry);
                     }
 
                 }
             }
-
-            console.log(uniqueValues);
-            console.log(results)
 
         } else {
 
@@ -1375,7 +1374,7 @@ chrome.runtime.onMessage.addListener((request)=>{
 
         console.log(request)
 
-        translationOutput.value = request.details.resultDetails.translations[0].text
+        translationOutput.value = request.details.resultDetails
 
     };
 });
