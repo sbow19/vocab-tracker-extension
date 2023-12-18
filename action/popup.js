@@ -1019,10 +1019,9 @@ chrome.runtime.onMessage.addListener(async(request)=>{
 
                         uniqueValues.push(entry.foreign_word);
                         results.push(entry);
-                    }
-
-                }
-            }
+                    };
+                };
+            };
 
         } else {
 
@@ -1047,11 +1046,13 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             foreignWord.setAttribute("value", `${result.foreign_word}`)
             foreignWord.setAttribute("id", `${result.foreign_word}`)
             foreignWord.innerText = `${result.foreign_word}\n(${result.target_language})`
+            foreignWord.contentEditable = true
 
             let translatedWord = document.createElement("td");
             translatedWord.classList.add("table-cell");
             translatedWord.classList.add("result-table-content-fword")
             translatedWord.innerText = `${result.translated_word}\n(${result.output_language})`
+            translatedWord.contentEditable = true
 
             let project = document.createElement("td");
             project.classList.add("table-cell");
@@ -1061,7 +1062,7 @@ chrome.runtime.onMessage.addListener(async(request)=>{
             let url = document.createElement("td");
             url.classList.add("table-cell");
             url.classList.add("result-table-content-fword");
-            url.innerText = result.base_url;
+            url.innerText = result.source_url;
 
             let tags = document.createElement("td");
             tags.classList.add("table-cell");
@@ -1274,16 +1275,21 @@ const translationOutput = document.getElementById("translation-output-text");
 
 const translationSave = document.getElementById("translation-save");
 
-translationSave.addEventListener("click", ()=>{
+translationSave.addEventListener("click", async()=>{
 
     /*add logic to clean input, as it is saved in the database*/
+
+    let currentURLRequest = await chrome.storage.local.get(["currentTabURL"]);
+    let currentURLObject =  currentURLRequest["currentTabURL"];
+    let currentURL = currentURLObject
+
 
     let translationResults = {
         foreign_word: translationInput.value,
         translated_word: translationOutput.value,
         target_language: translationTargetLanguageDropdown.value,
         output_language: translationOutputLanguageDropdown.value,
-        source_url: "",
+        source_url: currentURL,
         base_url: "",
         tags: getTags("#translation-tags-selected-list"),
         project: translationProjectsDropdown.value

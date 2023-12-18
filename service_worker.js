@@ -40,12 +40,18 @@ async function addToProjectList(newProjectName){
 
 //Set current tab in local storage
 
-chrome.tabs.onActivated.addListener((result)=>{
+chrome.tabs.onActivated.addListener(async(result)=>{
 
     let currentIDObject = {currentID:""}
     currentIDObject.currentID = result.tabId;
+    chrome.storage.local.set(currentIDObject);
 
-    chrome.storage.local.set(currentIDObject)
+    let tabURL = await chrome.tabs.get(result.tabId)
+    let currentTabURLObject = {currentTabURL: ""}
+
+    currentTabURLObject.currentTabURL = tabURL.url
+
+    chrome.storage.local.set(currentTabURLObject);
 
 });
 
@@ -576,7 +582,18 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
 //Listen for load events on a tab page
 
-chrome.tabs.onUpdated.addListener(async (updatedTab)=>{
+chrome.tabs.onUpdated.addListener(async (updatedTab, changeInfo, tab)=>{
+
+    console.log(tab)
+
+    let tabURL = await chrome.tabs.get(tab.id)
+
+    console.log(tabURL.url)
+    let currentTabURLObject = {currentTabURL: ""}
+
+    currentTabURLObject.currentTabURL = tabURL.url
+
+    chrome.storage.local.set(currentTabURLObject);
 
     //Content scripts load when tabs are updated
     await chrome.tabs.sendMessage(updatedTab, {
@@ -586,13 +603,11 @@ chrome.tabs.onUpdated.addListener(async (updatedTab)=>{
 
 //Listen for new text to save in database 
 
-chrome.runtime.onMessage.addListener((request)=>{
+chrome.runtime.onMessage.addListener(async(request)=>{
 
     if(request.message === "add-new-text"){
 
         //Check whether there is any text sent from popup or content views
-
-        console.log(request)
 
         let translationInput = request.details.details.foreign_word.trim()
 
@@ -602,9 +617,9 @@ chrome.runtime.onMessage.addListener((request)=>{
 
             VocabDatabase.openDatabase();
 
-            let newText = request.details.details;
+            console.log(request.details.details)
 
-            VocabDatabase.addToDatabase(newText);
+            VocabDatabase.addToDatabase(request.details.details);
         };
     };
 });

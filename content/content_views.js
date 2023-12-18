@@ -22,6 +22,8 @@ class Views {
 
     //This property sets the value of the shadowDOM
     static shadowDOMHost = null;
+
+    static childShadowDOMHost = null;
     
     /*These properties set the location of views based on the cursor location*/
     static xPos = null;
@@ -29,6 +31,7 @@ class Views {
 
     //This property sets the main view onto the super class
     static currentView = "none";
+
     
     static changeView(newView){
 
@@ -60,9 +63,20 @@ class Views {
 
         let host = document.createElement("div");
 
-        host.style.height = "100%";
+        host.setAttribute("id", "shadow-host");
 
-        host.style.width = "100%";
+        let body = document.querySelector("body");
+
+        let bodyHeight = `${body.offsetHeight}px`
+        let bodyWidth = `${body.offsetWidth}px`
+
+        host.style.minHeight = bodyHeight;
+        host.style.minWidth = bodyWidth;
+        host.style.position = "absolute";
+        host.style.top = 0;
+        host.style.left = 0;
+        host.style.pointerEvents = "none";
+        host.style.boxSizing = "border-box";
 
         document.documentElement.style.setProperty("--view-bg-color", "rgba(120, 120, 235, 1)");
         document.documentElement.style.setProperty("--extension-height", "200px");
@@ -70,23 +84,33 @@ class Views {
         document.documentElement.style.setProperty("--placeholder-border", "1px solid black");
         document.documentElement.style.setProperty("--custom-font-title", "'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif")
 
-
-        let body = document.querySelector("body");
-
-        body.appendChild(host);
+        body.appendChild(host)
 
         let shadowDOMHost = host.attachShadow({mode: "open"});
 
         shadowDOMHost.adoptedStyleSheets = [sheet]
 
+        //Set shadow DOM host extension div
+
+        const translationPopupOuter =  document.createElement("div");
+        translationPopupOuter.setAttribute("id", "translation-popup-outer");
+
+        shadowDOMHost.appendChild(translationPopupOuter);
+
         Views.shadowDOMHost = shadowDOMHost
 
-    }
+        //Set shadowDOM Host
+
+        const childShadowDOMHost = shadowDOMHost.getElementById("translation-popup-outer");
+        
+        Views.childShadowDOMHost = childShadowDOMHost;
+
+    };
 
 
     static appendView(view){
         view.style.display = "none"
-        Views.shadowDOMHost.appendChild(view);
+        Views.childShadowDOMHost.appendChild(view);
     }
 
     static viewPosition(view){
@@ -97,6 +121,8 @@ class Views {
 
         return view;
     }
+
+    
 
     setElements(keyElements){
 
@@ -165,9 +191,13 @@ const popupBubbleObject = new BubbleView(popupBubbleView,
 
 //Main translation popup object
 
-const translationPopup = document.createElement("div");
 
-translationPopup.innerHTML = `
+const translationPopupInner = document.createElement("div");
+
+translationPopupInner.id = "translation-popup"
+translationPopupInner.draggable = true;
+
+translationPopupInner.innerHTML = `
 <div class="extension-wrapper" id="extension-wrapper">
 
     <main class="content-wrapper" id="content-wrapper">
@@ -264,7 +294,8 @@ translationPopup.innerHTML = `
     </main>
 </div>`;
 
-const translationPopupObject = new TranslationView(translationPopup, {
+
+const translationPopupObject = new TranslationView(translationPopupInner, {
     input: "translation-input-text",
     output: "translation-output-text",
     project: "translation-parameter-project-set",
@@ -275,6 +306,8 @@ const translationPopupObject = new TranslationView(translationPopup, {
 //Resources Search
 
 async function resourceSearch(){
+
+    console.log(popupBubbleObject["elements"]["mainButton"])
 
     let popUpBubbleImage = Views.shadowDOMHost.getElementById(popupBubbleObject["elements"]["mainButton"]);
 
@@ -578,7 +611,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             //Dynamically update the view popup location to the mouse cursor position
             Views.xPos = event.clientX + document.documentElement.scrollLeft;
             Views.yPos  = event.clientY + document.documentElement.scrollTop;
-        })
+        });
 
 
         //Pop up navigation logic
@@ -598,6 +631,8 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             if (selectionString.length > 0 && bubbleViewClicked == false && translationViewClicked == false){
 
                 //If there is a selection and bubble view has not been activated yet, it will display.
+
+                console.log(popupBubbleObject)
 
                 Views.changeView(popupBubbleObject.view);
                 bubbleViewClicked = true;
@@ -619,14 +654,15 @@ chrome.runtime.onMessage.addListener(async (request)=>{
         });
 
         
+
+        
         Views.shadowDOMHost.getElementById(popupBubbleObject["elements"]["mainButton"]).addEventListener("click", (e)=>{
 
             e.stopPropagation();
 
-            console.log(e)
-
             //If the popup bubble is clicked , then the translation view is set, and the popup bubble reset
             Views.changeView(translationPopupObject.view);
+
 
             //Focus on the save button immediately
             translationPopupSave.focus()
@@ -654,9 +690,10 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             translationPopupInput.value = null;
             translationPopupOutput.value = null;
         })
+
         
         
-        translationPopupSave.addEventListener("click", (e)=>{
+        translationPopupSave.addEventListener("click", async(e)=>{
 
             e.stopPropagation();
 
@@ -664,7 +701,6 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             let tagsNodelist = translationPopUpSelectedTags.querySelectorAll(".vocab-tag-inner");
 
             let tagsList = nodeConvert(tagsNodelist);
-
 
             let translationObject = {
                 foreign_word: translationPopupInput.value,
@@ -679,6 +715,9 @@ chrome.runtime.onMessage.addListener(async (request)=>{
 
             sendNewText.details.details = translationObject;
 
+            console.log(sendNewText)
+
+
             chrome.runtime.sendMessage(sendNewText);
 
 
@@ -689,6 +728,45 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             translationPopupOutput.value = null;
 
         });
+
+        //Make popup draggable
+
+        Views.shadowDOMHost.getElementById("translation-popup").addEventListener("dragstart", (ev)=>{
+
+            console.log(ev)
+
+            ev.dataTransfer.effectAllowed = "move";
+
+            ev.dataTransfer.setData("text/plain", ev.target.id);
+
+        });
+
+        const dropZone = Views.shadowDOMHost.getElementById("translation-popup-outer");
+
+        dropZone.addEventListener("dragover", (event) =>{
+            event.preventDefault()
+            dropZone.style.pointerEvents = "auto"
+            event.dataTransfer.dropEffect = "move"
+        });
+
+        dropZone.addEventListener("drop", (event)=>{
+            event.preventDefault()
+
+            let draggedElement = Views.shadowDOMHost.getElementById(event.dataTransfer.getData("text/plain"));
+
+            let xPos = event.clientX + document.documentElement.scrollLeft;
+            let yPos = event.clientY + document.documentElement.scrollTop;
+            draggedElement.style.top = `${yPos}px`
+            draggedElement.style.left = `${xPos}px`
+
+
+            event.target.appendChild(draggedElement);
+            dropZone.style.pointerEvents = "none";
+
+            event.dataTransfer.clearData()
+        });
+
+
 
         chrome.runtime.onMessage.addListener((request)=>{
             
@@ -778,9 +856,7 @@ chrome.runtime.onMessage.addListener(async (request)=>{
                 if(request.details.removeCurrentProjectTags == true){
                     appendTags([]);
                     setProjectDropDown("default");
-
                 }; 
-                
                 setProjectDropDown("");
             };
         });
@@ -899,10 +975,26 @@ chrome.runtime.onMessage.addListener(async (request)=>{
             resetTimer();
             startTimer();
         });
-        
+
+        //reset shadow DOM size when resized;
+
+        window.addEventListener("resize", ()=>{
+
+            let host = document.getElementById("shadow-host");
+
+            let body = document.querySelector("body");
+
+            let bodyHeight = `${body.offsetHeight}px`
+            let bodyWidth = `${body.offsetWidth}px`
+
+            host.style.minHeight = bodyHeight;
+            host.style.minWidth = bodyWidth;
+
+        });
     };
 });
 
+//Styling for 
 
 //CSS  Styles for Shadow DOM 
 
@@ -969,6 +1061,16 @@ sheet.replace(`
 
 /*extension wrapper styling*/
 
+#translation-popup-outer{
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+    top: 0px;
+    left: 0px;
+    position: absolute;
+    pointer-events: none;
+}
+
 .extension-wrapper{
     color: initial;
     color-scheme: normal;
@@ -985,6 +1087,8 @@ sheet.replace(`
     justify-content: space-between;
     background-color: var(--view-bg-color);
     box-shadow: 0px 0px 4px 2px rgba(0, 0, 0, 0.733);
+    pointer-events: auto
+
 }
 
 /*Translation pop up styling*/
@@ -1145,6 +1249,7 @@ sheet.replace(`
     padding:0;
     z-index: 1;
     background-color: rgba(0, 0, 0, 0.527);
+    pointer-events: auto
 }
 
 .popup-bubble-icon-container{
