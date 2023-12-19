@@ -321,12 +321,16 @@ async function resourceSearch(){
 
 let selectionText;
 
+//Global load control variable
+let loadCount = false;
 
-let loadCount = 0;
 //The views need to be added before listeners can be added
 chrome.runtime.onMessage.addListener(async (request)=>{
 
-    if (request.load === "load content"){
+    if (request.load === "load content" && loadCount == false){
+
+        //Ensure that content script is only loaded once
+        loadCount = true
 
         //General reset for tags
         function appendTags(tags){
