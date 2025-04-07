@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
     <link rel="stylesheet" href="popup.css">
 
 </head>
+
 <body>
     <div class="extension-wrapper" id="extension-wrapper">
 
@@ -14,20 +16,13 @@
 
             <div class="logo-wrapper" id="logo-wrapper">
                 <div class="logo-wrapper-inner">
-                    <img src="" alt="">
+                    <img class="logo" src="/assets/translation-icon-128.png" alt="Vocab Tracker Logo">
                 </div>
             </div>
 
             <div class="title-wrapper" id="title-wrapper">
                 <div class="title-wrapper-inner">
-                    <h2 class="title">Vocab Tracker</h2>
-                </div>
-            </div>
-
-            <div class="options-wrapper" id="options-wrapper">
-                <div class="options-button-inner">
-                    <button class="vocab-button" id="options-button">Options</button>
-                <!-- add clickable image that links to new tab-->
+                    <h1 class="title">Vocab Tracker</h1>
                 </div>
             </div>
 
@@ -35,11 +30,10 @@
         <!-- The active view is determined by which view has the display property active. This property is changed either by navigating the extension within the action popup, or by virtue of user interactions on the page.-->
 
         <main class="content-wrapper" id="content-wrapper">
-        
+
             <!-- Default popup view-->
-        
-            <section class="default-view-wrapper"
-                    id="default-view">
+
+            <section class="default-view-wrapper" id="default-view">
 
                 <div class="current-projects-wrapper">
 
@@ -50,7 +44,7 @@
                     <div class="current-project-select-wrapper">
 
                         <div class="current-project-select-title-wrapper">
-                            <span>Set Project</span>
+                            <strong>Set Project</strong>
                         </div>
 
                         <div class="current-project-select-dropdown-wrapper">
@@ -60,30 +54,28 @@
                             </select>
 
                         </div>
-                        
+
                     </div>
 
                     <div class="current-project-language-set-wrapper">
 
-                        <div class="current-project-target-language-set-title-wrapper">
-                            <span>Set Target Language</span>
-                        </div> 
-
-                        <div class="current-project-target-language-set-dropdown-wrapper">
+                        <div class="current-project-target-language">
+                            <strong>Target Language</strong>
                             <select name="" id="current-project-target-language-set">
                                 <!--Language set-->
                             </select>
                         </div>
 
-                        <div class="current-project-output-language-set-title-wrapper">
-                            <span>Set Output Language</span>
-                        </div> 
+                       
 
-                        <div class="current-project-output-language-set-dropdown-wrapper">
+                        <div class="current-project-output-language">
+                            <strong>Output Language</strong>
                             <select name="" id="current-project-output-language-set">
                                 <!--Language set-->
                             </select>
                         </div>
+
+                        
 
                     </div>
 
@@ -92,9 +84,9 @@
 
                         <div class="current-project-tagset-title-dropdown-wrapper">
                             <div class="current-project-tagset-title-wrapper">
-                                <span class="current-project-tagset-title">
+                                <strong class="current-project-tagset-title">
                                     Select Tags
-                                </span>
+                                </strong>
                             </div>
                             <div class="current-project-tagset-dropdown-wrapper">
                                 <select class="vocab-select" id="current-project-tag-select" name="current-project">
@@ -106,29 +98,29 @@
                                     Add
                                 </button>
                             </div>
-                        </div> 
+                        </div>
 
                         <div class="current-project-tagset-selected-wrapper">
                             <div class="vocab-tags-selected-background">
                                 <ul class="vocab-tags-selected-list" id="current-project-tags-selected-list">
 
                                     <!-- These list items will be appended on click-->
-                                    
+
                                 </ul>
                             </div>
                         </div>
-                        
+
                     </div>
 
                     <div class="current-project-button-wrapper">
                         <div class="current-project-create-button-wrapper">
                             <button class="vocab-button" id="current-project-create-button"> Create New Project</button>
-            
+
                         </div>
 
                         <div class="current-project-delete-button-wrapper">
                             <button class="vocab-button" id="current-project-manage-button">Manage Projects</button>
-            
+
                         </div>
 
                     </div>
@@ -141,25 +133,27 @@
                     <div class="search-wrapper">
 
                         <div class="search-wrapper-title-wrapper">
-                            <h4 class="search-wrapper-title">Search Your Vocabulary!</h3>
+                            <h3 class="search-wrapper-title">Search Your Vocabulary!</h3>
                         </div>
 
                         <div class="search-wrapper-options-wrapper">
                             <ul class="search-options-list-wrapper">
                                 <li class="search-by-dropdown-wrapper">
 
-                                    <select title="parameter" class="vocab-dropdown" name="parameters" id="search-wrapper-parameters-list">
+                                    <select title="parameter" class="vocab-dropdown" name="parameters"
+                                        id="search-wrapper-parameters-list">
                                         <option value="allProjects">Projects</option>
                                         <option value="allURLs">URLs</option>
                                         <option value="allTags">Tags</option>
                                         <option value="allLanguages">Language</option>
                                         <option value="targetLanguage">Target Language</option>
                                         <option value="outputLanguage">Output Language</option>
-                                        
+
 
                                     </select>
 
-                                    <select title="data" name="data" id="search-wrapper-data-list" class="vocab-dropdown">
+                                    <select title="data" name="data" id="search-wrapper-data-list"
+                                        class="vocab-dropdown">
                                         <!--List of parameters corresponding to the parameter select dropdown-->
                                     </select>
 
@@ -183,23 +177,23 @@
                                                 Add
                                             </button>
                                         </div>
-                                    </div> 
+                                    </div>
 
                                     <div class="search-tagset-selected-wrapper">
                                         <div class="vocab-tags-selected-background">
                                             <ul class="vocab-tags-selected-list" id="search-tags-selected-list">
-            
+
                                                 <!-- These list items will be appended on click-->
-                                                
+
                                             </ul>
                                         </div>
-                                    </div> 
+                                    </div>
 
                                 </li>
                             </ul>
                         </div>
 
-                        
+
 
 
                         <div class="search-wrapper-buttons-wrapper">
@@ -210,52 +204,44 @@
 
                         </div>
 
-                    
+
                     </div>
 
 
                     <div class="translate-wrapper">
 
-                        <div class="translate-input-wrapper">
+                        <h3>Translate Text</h2>
 
-                            <label for="translate-input">Type text to translate</label>
+                            <div class="translate-input-wrapper">
+                                <input type="text" id="translate-input" placeholder="Type text and translate...">
 
-                            <input type="text" id="translate-input">
-                        
-                        </div>
-
-                        <div class="translate-buttons-wrapper">
-
-                            <div class="translate-button-wrapper">
                                 <button id="search-wrapper-translate-button" class="vocab-button">Translate</button>
-                            </div>
 
-                        </div>
+                            </div>
 
                     </div>
 
-                
-                    
+
+
 
 
                 </div>
             </section>
-        
+
             <!-- Search result popup view-->
 
-            <section class="result-view-wrapper"
-            id="result-view">
+            <section class="result-view-wrapper" id="result-view">
 
                 <div class="result-view-content-wrapper">
                     <div class="result-title-wrapper">
-                        <span>Result</span>
+                        <h3>Result</h3>
                     </div>
                     <div class="result-table-wrapper">
                         <table class="result-table">
                             <thead class="result-table-head">
                                 <tr class="result-table-head-row">
-                                    <td class="table-cell result-table-head-fword">For. word</td>
-                                    <td class="table-cell result-table-head-tword">tran. word</td>
+                                    <td class="table-cell result-table-head-fword">Target Word</td>
+                                    <td class="table-cell result-table-head-tword">Output Word</td>
                                     <td class="table-cell result-table-head-project">Project</td>
                                     <td class="table-cell result-table-head-url">URL</td>
                                     <td class="table-cell result-table-head-tags">Tags</td>
@@ -263,10 +249,10 @@
                                 </tr>
                             </thead>
                             <tbody class="result-table-body" id="popup-result-table-view">
-                                
+
                                 <!--Result go here-->
-                                
-                               
+
+
                             </tbody>
                         </table>
                     </div>
@@ -279,7 +265,7 @@
                         </div>
                     </div>
                     <div id="result-popup-main-view-button-wrapper">
-                        <button id="result-main-menu-button"class="vocab-button">Main Menu</button>
+                        <button id="result-main-menu-button" class="vocab-button">Main Menu</button>
                     </div>
                 </div>
 
@@ -356,110 +342,112 @@
 
             <!--Translation popup view-->
 
-            <section class="translation-view-wrapper"
-                    id="translation-view">
+            <section class="translation-view-wrapper" id="translation-view">
 
-                    <div class="translation-input-output-wrapper">
+                <div class="translation-input-output-wrapper">
 
-                        <div class="translation-view-title-wrapper">
-                            <span class="translation-view-title">Translate!</span>
-                        </div>
-
-                        <div class="translation-input-output-wrapper-inner">
-                            <div class="translation-input-text-wrapper">
-                                <label for="target-language">Select target language</label>
-                                <select name="target-language" id="translation-target-language">
-                                    <!---->
-                                 </select>
-                                <textarea name="" id="translation-input-text" cols="50" rows="3" placeholder="Input"></textarea>
-                            </div>
-                            <div class="translation-output-text-wrapper">
-                                <label for="output-language">Select output language</label>
-                                <select name="output-language" id="translation-output-language">
-                                    <!---->
-                                </select>
-                                <textarea name="" id="translation-output-text" cols="50" rows="3" placeholder="Output"></textarea>
-                            </div>
-                        </div>
-
-                        <div class="translation-popup-main-view-button-wrapper">
-                            <button class="vocab-button" id="translation-main-menu-button">Main Menu</button>
-                        </div>
-
+                    <div class="translation-view-title-wrapper">
+                        <h3 class="translation-view-title">Translate!</h3>
                     </div>
 
+                    <div class="translation-input-output-wrapper-inner">
+                        <div class="translation-input-text-wrapper">
+                            <strong>Select target language</strong>
+                            <select name="target-language" id="translation-target-language">
+                                <!---->
+                            </select>
+                            <textarea name="" id="translation-input-text" cols="50" rows="3"
+                                placeholder="Input"></textarea>
+                        </div>
+                        <div class="translation-output-text-wrapper">
+                            <strong>Select output language</strong>
+                            <select name="output-language" id="translation-output-language">
+                                <!---->
+                            </select>
+                            <textarea name="" id="translation-output-text" cols="50" rows="3"
+                                placeholder="Output"></textarea>
+                        </div>
+                    </div>
 
-                    <div class="translation-parameters-wrapper">
-                        <ul class="translation-parameters-list">
-                        
-                            <li class="translation-parameter-project-wrapper">
-                                <div class="translation-parameter-project-title-wrapper">
-                                    <span class="translation-parameter-project-title">Select Project</span>
+                    <div class="translation-popup-main-view-button-wrapper">
+                        <button class="vocab-button" id="translation-main-menu-button">Main Menu</button>
+                    </div>
+
+                </div>
+
+
+                <div class="translation-parameters-wrapper">
+                    <ul class="translation-parameters-list">
+
+                        <li class="translation-parameter-project-wrapper">
+                            <div class="translation-parameter-project-title-wrapper">
+                                <strong>Select Project</strong>
+                            </div>
+                            <div class="translation-parameter-project-set-wrapper">
+                                <select name="" id="translation-parameter-project-set">
+                                    <option value="default">Default</option>
+                                    <option value="project 1">Project 1</option>
+                                    <option value="project 2">Project 2</option>
+                                </select>
+                            </div>
+                        </li>
+
+
+                        <li class="translation-parameter-tags-wrapper">
+                            <div class="translation-tagset-title-dropdown-wrapper">
+                                <div class="translationt-tagset-title-wrapper">
+                                    <strong class="translation-tagset-title">
+                                        Select Tags
+                                    </strong>
                                 </div>
-                                <div class="translation-parameter-project-set-wrapper">
-                                    <select name="" id="translation-parameter-project-set">
-                                        <option value="default">Default</option>
-                                        <option value="project 1">Project 1</option>
-                                        <option value="project 2">Project 2</option>
+                                <div class="translation-tagset-dropdown-wrapper">
+                                    <select class="vocab-select" id="translation-tag-select" name="translation">
+                                        <!--Tags inserted here-->
                                     </select>
                                 </div>
-                            </li>
-
-
-                            <li class="translation-parameter-tags-wrapper">
-                                <div class="translation-tagset-title-dropdown-wrapper">
-                                    <div class="translationt-tagset-title-wrapper">
-                                        <span class="translation-tagset-title">
-                                            Select Tags
-                                        </span>
-                                    </div>
-                                    <div class="translation-tagset-dropdown-wrapper">
-                                        <select class="vocab-select" id="translation-tag-select" name="translation">
-                                            <!--Tags inserted here-->
-                                        </select>
-                                    </div>
-                                    <div class="translation-tagset-add-wrapper">
-                                        <button class="vocab-button" id="translation-add-tag">
-                                            Add
-                                        </button>
-                                    </div>
-                                </div> 
-        
-                                <div class="translation-tagset-selected-wrapper">
-                                    <div class="vocab-tags-selected-background">
-                                        <ul class="vocab-tags-selected-list" id="translation-tags-selected-list">
-        
-                                            <!-- These list items will be appended on click-->
-                                            
-                                        </ul>
-                                    </div>
+                                <div class="translation-tagset-add-wrapper">
+                                    <button class="vocab-button" id="translation-add-tag">
+                                        Add
+                                    </button>
                                 </div>
+                            </div>
 
-                            </li>
+                            <div class="translation-tagset-selected-wrapper">
+                                <div class="vocab-tags-selected-background">
+                                    <ul class="vocab-tags-selected-list" id="translation-tags-selected-list">
+
+                                        <!-- These list items will be appended on click-->
+
+                                    </ul>
+                                </div>
+                            </div>
+
+                        </li>
 
 
-                            <li class="translation-parameter-save-wrapper">
-                                <button class="vocab-button translation-parameter-save-button" id="translation-save">Save</button>
-                            </li>
-                        </ul>
+                        <li class="translation-parameter-save-wrapper">
+                            <button class="vocab-button translation-parameter-save-button"
+                                id="translation-save">Save</button>
+                        </li>
+                    </ul>
 
-                    </div>
+                </div>
 
 
             </section>
 
-            <!--Add project add view-->
+            <!--Create Project View -->
 
             <section class="add-project-view-wrapper" id="add-project-view">
                 <div class="add-project-main-wrapper">
                     <div class="add-project-title-wrapper">
-                        <span>Create New Project</span>
+                        <h3>Create New Project</h3>
                     </div>
                     <div class="add-project-parameters-wrapper">
                         <ul class="add-project-parameters-list">
                             <li class="add-project-name-wrapper">
                                 <div class="add-project-name-title-wrapper">
-                                    <span>Project Name</span>
+                                    <strong>Project Name</strong>
                                 </div>
                                 <div class="add-project-name-input-wrapper">
                                     <input class="add-project-name-input" type="text" id="add-project-name-input">
@@ -468,39 +456,34 @@
 
                             <li class="add-project-language-wrapper">
                                 <div class="add-project-language-title-wrapper">
-                                    <span>Default Languages</span>
+                                    <strong>Default Languages</strong>
                                 </div>
                                 <div class="add-project-language-set-wrapper">
 
-                                    <label for="">Default Target Language</label>
-                                    <select class="add-project-target-language-select" name="target-language" id="add-project-target-language-dropdown" value="add-project">
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="English">English</option>
-                                    </select>
+                                    <div>
+                                        <strong>Default Target Language</strong>
+                                        <select class="add-project-target-language-select" name="target-language"
+                                            id="add-project-target-language-dropdown" value="add-project">
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="English">English</option>
+                                        </select>
+                                    </div>
 
-                                    <label for="">Default Output Language</label>
-                                    <select class="add-project-output-language-select" name="output-language" id="add-project-output-language-dropdown" value="add-project">
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="English">English</option>
-                                    </select>
+                                    <div>
+                                        <strong>Default Output Language</strong>
+
+                                        <select class="add-project-output-language-select" name="output-language"
+                                            id="add-project-output-language-dropdown" value="add-project">
+                                            <option value="Spanish">Spanish</option>
+                                            <option value="English">English</option>
+                                        </select>
+                                    </div>
                                 </div>
                             </li>
 
                             <li class="add-project-tags-wrapper">
                                 <div class="add-project-tags-title-wrapper">
-                                    <span>Select Tags</span>
-                                </div>
-
-                                <div class="add-project-tags-chosen-wrapper">
-                                    
-                                    <div class="vocab-tags-selected-background">
-                                        <ul class="vocab-tags-selected-list" id="add-project-tags-selected-list">
-
-                                            <!-- These list items will be appended on click-->
-                                            
-                                        </ul>
-                                    </div>
-                                
+                                    <strong>Select Tags</strong>
                                 </div>
 
                                 <div class="add-project-tags-select-wrapper">
@@ -517,8 +500,20 @@
                                         </button>
                                     </div>
                                 </div>
+
+                                <div class="add-project-tags-chosen-wrapper">
+
+                                    <div class="vocab-tags-selected-background">
+                                        <ul class="vocab-tags-selected-list" id="add-project-tags-selected-list">
+
+                                            <!-- These list items will be appended on click-->
+
+                                        </ul>
+                                    </div>
+
+                                </div>
                             </li>
-                            
+
                         </ul>
 
                     </div>
@@ -533,25 +528,25 @@
 
             </section>
 
-            <!-- add tags and languages wrapper-->
+            <!-- Manage projects and tags view-->
 
             <section class="tags-view-wrapper" id="tags-view">
                 <div class="tags-management-wrapper">
 
                     <div class="tags-add-delete-tags-wrapper">
                         <div class="tags-add-delete-tags-title-wrapper">
-                            <span> Add / Delete Tags </span>
+                            <h3> Add / Delete Tags </h3>
                         </div>
 
                         <div class="tags-add-delete-wrapper-inner">
                             <div class="tags-all-tags-wrapper">
-                                
+
                                 <ul class="vocab-tags-selected-list" id="add-tags-tags-list" name="add-tags">
 
                                     <!-- These list items will be appended on click-->
-                                    
+
                                 </ul>
-                                
+
                             </div>
                             <div class="tags-create-new-tag-wrapper">
                                 <div class="tags-input-wrapper">
@@ -568,21 +563,21 @@
                     </div>
                     <div class="tags-delete-projects-wrapper">
                         <div class="tags-delete-projects-title-wrapper">
-                            <span> Delete Projects</span>
+                            <h3> Delete Projects</h3>
                         </div>
 
                         <div class="tags-delete-projects-list-wrapper">
                             <ul class="vocab-tags-selected-list" id="add-tags-project-list">
 
                                 <!-- These list items will be appended on click-->
-                                
+
                             </ul>
                         </div>
-                        
+
                     </div>
                 </div>
                 <div class="tags-main-menu-wrapper">
-                    <div class= "tags-main-menu-button-wrapper">
+                    <div class="tags-main-menu-button-wrapper">
                         <button class="vocab-button" id="tags-main-menu-button">Main Menu</button>
                     </div>
                 </div>

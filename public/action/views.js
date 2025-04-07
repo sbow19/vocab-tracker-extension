@@ -1,7 +1,6 @@
 //Class to store state of views
 
 export class View{
-
     constructor(idString){
         this.view = document.getElementById(idString);
     };
@@ -17,7 +16,7 @@ export class View{
         //called on View objects to set new display values.
     
         let current = View.currentView
-        current.setDisplay("none")
+        current.setDisplay("none");
     
         View.currentView = newView
         newView.setDisplay("flex");
