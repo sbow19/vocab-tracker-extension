@@ -21,10 +21,63 @@ base_url, (string)
 
 //General functions
 
+
+// Wrap content in local scope to avoid global collisions
+
 //Set current tab in local storage
 async function getCurrentTab(tabId) {
   let tab = await chrome.tabs.get(tabId);
   return tab;
+}
+
+function updateContentScript() {
+
+  return new Promise(async(resolve, reject)=>{
+
+    try{    
+      const {currentTab} = await chrome.storage.local.get(["currentTab"])
+      // Fetch all content
+      const projects = await VocabDatabase.getAll("projects");
+    
+      for (let project of projects) {
+        allDetails.projects[project.id] = project;
+      }
+    
+      const p = await VocabDatabase.getAll("currentProject");
+      allDetails.currentProject = p[0] || {
+        id: "default",
+        name: "default",
+        default_target_language: "Spanish",
+        default_output_language: "Spanish",
+        tags: "[]",
+        entries: "{}",
+      };
+    
+      allDetails.tags = await VocabDatabase.getAll("tags");
+    
+      //Content scripts load when tabs are updated
+      await chrome.tabs.sendMessage(currentTab.id, {
+        message: "set-content",
+        data: allDetails,
+      });
+
+      resolve({
+        success: true
+      })
+
+    }catch(e){
+
+      console.log(e)
+
+      reject({
+        success: false
+      })
+
+    }
+   
+
+  })
+ 
 }
 
 chrome.tabs.onActivated.addListener(async (result) => {
@@ -127,9 +180,6 @@ chrome.runtime.onInstalled.addListener(async (details) => {
   }
 });
 
-// Listen for changes to the local storage
-chrome.storage.local.onChanged.addListener((result) => {});
-
 //Set current project based on selected current project
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "set-current-project") {
@@ -143,6 +193,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       VocabDatabase.setCurrentProject(currentProject)
         .then((res) => {
           sendResponse(true);
+
+          return updateContentScript()
+        })
+        .then((res)=>{
+          // React to content script update
         })
         .catch((e) => {
           sendResponse(false);
@@ -153,12 +208,19 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
+
+
 //Add new project details to local storage
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.message === "add-project") {
     VocabDatabase.addItem("add-project", message.details.projectDetails)
       .then((result) => {
         sendResponse(result);
+
+        return updateContentScript()
+      })
+      .then((res) => {
+        // React to  content script update
       })
       .catch(() => {
         sendResponse(result);
@@ -169,20 +231,23 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-//Add tags message
-const updateTagsMessage = new MessageTemplate("update-tags", {
-  tagsList: [],
-});
-
+// Add new tag
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "add-tag") {
     try {
       VocabDatabase.addItem("add-tag", request.details)
         .then((res) => {
-          sendResponse(res);
+          sendResponse({
+            success: true,
+          });
+
+          return updateContentScript()
+        })
+        .then(()=>{
+          // React to content script update
         })
         .catch((e) => {
-          sendResponse(e);
+          sendResponse(false);
         });
     } catch (e) {
       sendResponse(false);
@@ -193,43 +258,18 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 });
 
 //Delete tags message
-chrome.runtime.onMessage.addListener(async (request) => {
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "delete-tag") {
-    let allProjectsRequest = await chrome.storage.local.get([
-      "allProjectDetails",
-    ]);
-
-    let allProjects = allProjectsRequest["allProjectDetails"];
-
-    let indexToRemove = allProjects["allTags"].indexOf(request.details.tagName);
-
-    allProjects["allTags"].splice(indexToRemove, 1);
-
-    let allProjectDetailsUpdated = {
-      allProjectDetails: allProjects,
-    };
-
-    await chrome.storage.local.set(allProjectDetailsUpdated);
-
-    updateTagsMessage.details.tagsList = allProjects["allTags"];
-
-    chrome.runtime.sendMessage(updateTagsMessage);
-
-    //Prompt content script to add new project details
-    let currentIDRequest = await chrome.storage.local.get(["currentID"]);
-    let currentID = currentIDRequest["currentID"];
-
-    chrome.tabs.sendMessage(currentID, updateTagsMessage);
-  }
-});
-
-//Delete projects message
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
-  if (request.message === "delete-project") {
-    //Delete all entries related to project
-    VocabDatabase.deleteItem("project", request.details)
+    VocabDatabase.deleteItem("tag", request.details)
       .then((res) => {
-        sendResponse(true);
+        sendResponse({
+          success: true,
+        });
+
+        return updateContentScript()
+      })
+      .then(()=>{
+        // React to content script update
       })
       .catch((e) => {
         sendResponse(false);
@@ -237,320 +277,163 @@ chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
 
     return true;
   }
-
-  //Update current project
 });
 
-const updateCurrentProjectTags = new MessageTemplate("update-current-tags", {
-  tagsList: [],
-});
+//Delete projects message
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.message === "delete-project") {
+    VocabDatabase.deleteItem("project", request.details)
+      .then((res) => {
+        sendResponse(true);
 
-//Upate current project tags
+        return updateContentScript()
+      })
+      .then(()=>{
+        // React to content script updat
+      })
+      .catch((e) => {
+        sendResponse(false);
+      });
 
-chrome.runtime.onMessage.addListener(async (request) => {
-  if (request.message === "update-current-tags") {
-    //Updating current project
-
-    let currentProjectsRequest = await chrome.storage.local.get([
-      "currentProject",
-    ]);
-
-    let [currentProjectName] = Object.keys(
-      currentProjectsRequest["currentProject"]
-    );
-
-    let currentProjectDetails =
-      currentProjectsRequest["currentProject"][currentProjectName];
-
-    if (request.details.action === "add") {
-      currentProjectDetails["tags"].push(request.details.tagName);
-
-      let updatedCurrentProjectDetails = {
-        [currentProjectName]: currentProjectDetails,
-      };
-
-      let updatedCurrentProjectDetailsPush = {
-        currentProject: updatedCurrentProjectDetails,
-      };
-
-      await chrome.storage.local.set(updatedCurrentProjectDetailsPush);
-
-      updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"];
-
-      let currentIDRequest = await chrome.storage.local.get(["currentID"]);
-      let currentID = currentIDRequest["currentID"];
-
-      chrome.tabs.sendMessage(currentID, updateCurrentProjectTags);
-      chrome.runtime.sendMessage(updateCurrentProjectTags);
-    } else if ((request.details.action = "delete")) {
-      let indexToRemove = currentProjectDetails["tags"].indexOf(
-        request.details.tagName
-      );
-
-      currentProjectDetails["tags"].splice(indexToRemove, 1);
-
-      let updatedCurrentProjectDetails = {
-        [currentProjectName]: currentProjectDetails,
-      };
-
-      let updatedCurrentProjectDetailsPush = {
-        currentProject: updatedCurrentProjectDetails,
-      };
-
-      await chrome.storage.local.set(updatedCurrentProjectDetailsPush);
-
-      updateCurrentProjectTags.details.tagsList = currentProjectDetails["tags"];
-
-      let currentIDRequest = await chrome.storage.local.get(["currentID"]);
-      let currentID = currentIDRequest["currentID"];
-
-      chrome.tabs.sendMessage(currentID, updateCurrentProjectTags);
-      chrome.runtime.sendMessage(updateCurrentProjectTags);
-    }
-
-    //updating project with new tag information
-
-    let projectRequest = await chrome.storage.local.get([currentProjectName]);
-
-    let projectDetails = projectRequest[currentProjectName];
-
-    if (request.details.action === "add") {
-      projectDetails["tags"].push(request.details.tagName);
-
-      let updatedCurrentProjectDetails = {
-        [currentProjectName]: projectDetails,
-      };
-
-      await chrome.storage.local.set(updatedCurrentProjectDetails);
-    } else if (request.details.action === "delete") {
-      let indexToRemove = projectDetails["tags"].indexOf(
-        request.details.tagName
-      );
-
-      console.log(projectDetails);
-
-      projectDetails["tags"].splice(indexToRemove, 1);
-
-      let updatedCurrentProjectDetails = {
-        [currentProjectName]: projectDetails,
-      };
-
-      await chrome.storage.local.set(updatedCurrentProjectDetails);
-    }
+    return true;
   }
 });
 
-//update current language
+//Upate current project details, including tags. Replace schemaModels version too
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.message === "update-current-project") {
+    // Update with new project details
+    VocabDatabase.updateCurrentProject(request.details)
+      .then((res) => {
+        sendResponse({
+          success: true,
+        });
 
-const updateCurrentLanguage = new MessageTemplate("update-current-language");
+        return updateContentScript()
+      })
+      .then(()=>{
+        // React to content script update
+      })
+      .catch((e) => {
+        sendResponse(false);
+      });
 
-chrome.runtime.onMessage.addListener(async (request) => {
-  if (
-    request.message === "change-language" &&
-    request.details.type === "target"
-  ) {
-    try {
-      //Get project details from local storage
-      let result = await chrome.storage.local.get(["currentProject"]);
-
-      let currentProject = result["currentProject"];
-
-      let [currentProjectName] = Object.keys(currentProject);
-
-      currentProject[currentProjectName].target_language =
-        request.details.language;
-
-      let storageCurrentProjectDetails = { currentProject: currentProject };
-
-      //Set new current project details
-      await chrome.storage.local.set(storageCurrentProjectDetails);
-
-      //Change language settings on project
-
-      await chrome.storage.local.set(currentProject);
-
-      chrome.runtime.sendMessage(updateCurrentLanguage);
-
-      let currentIDRequest = await chrome.storage.local.get(["currentID"]);
-      let currentID = currentIDRequest["currentID"];
-
-      chrome.tabs.sendMessage(currentID, updateCurrentLanguage);
-    } catch (e) {
-      console.log(e);
-    }
-  } else if (
-    request.message === "change-language" &&
-    request.details.type === "output"
-  ) {
-    try {
-      //Get project details from local storage
-      let result = await chrome.storage.local.get(["currentProject"]);
-
-      let currentProject = result["currentProject"];
-
-      let [currentProjectName] = Object.keys(currentProject);
-
-      currentProject[currentProjectName].output_language =
-        request.details.language;
-
-      let storageCurrentProjectDetails = { currentProject: currentProject };
-
-      //Set new current project details
-      await chrome.storage.local.set(storageCurrentProjectDetails);
-
-      //Change language settings on project
-
-      await chrome.storage.local.set(currentProject);
-
-      chrome.runtime.sendMessage(updateCurrentLanguage);
-
-      let currentIDRequest = await chrome.storage.local.get(["currentID"]);
-      let currentID = currentIDRequest["currentID"];
-
-      chrome.tabs.sendMessage(currentID, updateCurrentLanguage);
-    } catch (e) {
-      console.log(e);
-    }
+    return true;
   }
 });
+
+// Change language of current project
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.message === "change-language") {
+    VocabDatabase.updateCurrentProject(message.details)
+      .then((res) => {
+        sendResponse({
+          success: true,
+        });
+        return updateContentScript()
+      })
+      .then(()=>[
+        // React to cntetn script udate
+      ])
+      .catch((e) => {
+        sendResponse({
+          success: false,
+        });
+      });
+
+    return true;
+  }
+});
+
+const allDetails = {
+  projects: {},
+  currentProject: {},
+  tags: [],
+};
 
 //Listen for load events on a tab page
 chrome.tabs.onUpdated.addListener(async (updatedTab, changeInfo, tab) => {
   let tabURL = await chrome.tabs.get(tab.id);
 
+  // Set current URL
   let currentTabURLObject = { currentTabURL: "" };
-
   currentTabURLObject.currentTabURL = tabURL.url;
-
   chrome.storage.local.set(currentTabURLObject);
+
+  // Fetch all content
+  const projects = await VocabDatabase.getAll("projects");
+
+  for (let project of projects) {
+    allDetails.projects[project.id] = project;
+  }
+
+  const p = await VocabDatabase.getAll("currentProject");
+  allDetails.currentProject = p[0] || {
+    id: "default",
+    name: "default",
+    default_target_language: "Spanish",
+    default_output_language: "Spanish",
+    tags: "[]",
+    entries: "{}",
+  };
+
+  allDetails.tags = await VocabDatabase.getAll("tags");
 
   //Content scripts load when tabs are updated
   await chrome.tabs.sendMessage(updatedTab, {
     load: "load content",
+    data: allDetails,
   });
 });
 
-//Listen for new text to save in database
-chrome.runtime.onMessage.addListener(async (request, sender, sendResponse) => {
+let queue = false;
+//Listen for new text to save in database from  content script
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "add-new-text") {
     //Check whether there is any text sent from popup or content views
     let translationInput = request.details.target_word.trim();
 
+    if (queue) sendResponse("Too many requests");
+    queue = true;
+
     if (translationInput === "") {
       sendResponse("No input");
     } else {
-      const result = await VocabDatabase.addItem("add-entry", request.details);
-      sendResponse(result);
+      VocabDatabase.addItem("add-entry", request.details)
+        .then(() => {
+          sendResponse({
+            success: true,
+          });
+        })
+        .catch(() => {
+          sendResponse({
+            success: false,
+          });
+        })
+        .finally(() => {
+          queue = false;
+        });
     }
     return true;
   }
 });
 
-//Listen for new database retrieval request
+chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message.message === "delete-entry") {
+    VocabDatabase.deleteItem("entry", message.details)
+      .then((res) => {
+        sendResponse(res);
 
-//Send  search results message
+        return updateContentScript()
+      })
+      .then(()=>{
+        // React to content script updaate
+      })
+      .catch((e) => {
+        sendResponse(false);
+      });
 
-let searchResultsMessage = new MessageTemplate("display-results", {
-  searchResults: [],
-  tags: false,
-});
-
-chrome.runtime.onMessage.addListener(async (request) => {
-  if (request.message === "fetch-data") {
-    let searchTerms = request.details.searchTerms;
-
-    if (searchTerms.searchType === "allTags") {
-      let resultsList = [];
-
-      for (let tag of searchTerms.tags) {
-        let results = await VocabDatabase.retrieveFromDatabase(
-          searchTerms.searchType,
-          tag
-        );
-
-        resultsList.push(results);
-      }
-
-      searchResultsMessage.details.searchResults = resultsList;
-      searchResultsMessage.details.tags = true;
-
-      chrome.runtime.sendMessage(searchResultsMessage);
-
-      let currentDatabaseSearch = {
-        currentDatabaseSearch: resultsList,
-      };
-
-      await chrome.storage.local.set(currentDatabaseSearch);
-    } else if (searchTerms.searchType === "allLanguages") {
-      let targetResults = await VocabDatabase.retrieveFromDatabase(
-        "targetLanguage",
-        searchTerms.searchParameter
-      );
-
-      let outputResults = await VocabDatabase.retrieveFromDatabase(
-        "outputLanguage",
-        searchTerms.searchParameter
-      );
-
-      let mergedResults = [];
-
-      //Check first array
-
-      for (let resultObject of targetResults) {
-        if (
-          !mergedResults.some(
-            (object) => resultObject.foreign_word === object.foreign_word
-          )
-        ) {
-          mergedResults.push(resultObject);
-        }
-      }
-
-      for (let resultObject of outputResults) {
-        if (
-          !mergedResults.some(
-            (object) => resultObject.foreign_word === object.foreign_word
-          )
-        ) {
-          mergedResults.push(resultObject);
-        }
-      }
-
-      searchResultsMessage.details.searchResults = mergedResults;
-      searchResultsMessage.details.tags = false;
-
-      chrome.runtime.sendMessage(searchResultsMessage);
-
-      let currentDatabaseSearch = {
-        currentDatabaseSearch: mergedResults,
-      };
-
-      await chrome.storage.local.set(currentDatabaseSearch);
-    } else {
-      let results = await VocabDatabase.retrieveFromDatabase(
-        searchTerms.searchType,
-        searchTerms.searchParameter
-      );
-
-      searchResultsMessage.details.searchResults = results;
-      searchResultsMessage.details.tags = false;
-
-      chrome.runtime.sendMessage(searchResultsMessage);
-
-      let currentDatabaseSearch = {
-        currentDatabaseSearch: results,
-      };
-
-      await chrome.storage.local.set(currentDatabaseSearch);
-    }
-  }
-});
-
-chrome.runtime.onMessage.addListener(async (request) => {
-  if (request.message === "delete-entry") {
-    let entryValue = request.details.value;
-
-    VocabDatabase.removeFromDatabase(entryValue);
+    return true;
   }
 });
 

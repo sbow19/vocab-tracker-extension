@@ -50,7 +50,7 @@
                         <div class="current-project-select-dropdown-wrapper">
 
                             <select name="" id="current-project-project-options">
-                                <option value="default">All Projects</option>
+                                <option value="default">No Project</option>
                             </select>
 
                         </div>
@@ -142,14 +142,11 @@
 
                                     <select title="parameter" class="vocab-dropdown" name="parameters"
                                         id="search-wrapper-parameters-list">
-                                        <option value="allProjects">Projects</option>
-                                        <option value="allURLs">URLs</option>
-                                        <option value="allTags">Tags</option>
+                                        <option value="projects">Projects</option>
+                                        <option value="tags">Tags</option>
                                         <option value="allLanguages">Language</option>
                                         <option value="targetLanguage">Target Language</option>
                                         <option value="outputLanguage">Output Language</option>
-
-
                                     </select>
 
                                     <select title="data" name="data" id="search-wrapper-data-list"
@@ -167,9 +164,7 @@
                                         </div>
                                         <div class="search-tagset-dropdown-wrapper">
                                             <select class="vocab-select" id="search-tag-select" name="search">
-                                                <option value="Spanish">Spanish</option>
-                                                <option value="Crypto">Crypto</option>
-                                                <option value="Dating">Dating</option>
+                                                <!-- Add tag search set -->
                                             </select>
                                         </div>
                                         <div class="search-tagset-add-wrapper">
@@ -240,8 +235,8 @@
                         <table class="result-table">
                             <thead class="result-table-head">
                                 <tr class="result-table-head-row">
-                                    <td class="table-cell result-table-head-fword">Target Word</td>
-                                    <td class="table-cell result-table-head-tword">Output Word</td>
+                                    <td class="table-cell result-table-head-tword">Target Word</td>
+                                    <td class="table-cell result-table-head-oword">Output Word</td>
                                     <td class="table-cell result-table-head-project">Project</td>
                                     <td class="table-cell result-table-head-url">URL</td>
                                     <td class="table-cell result-table-head-tags">Tags</td>
@@ -268,75 +263,6 @@
                         <button id="result-main-menu-button" class="vocab-button">Main Menu</button>
                     </div>
                 </div>
-
-                <!--
-                <div class="result-view-parameters-wrapper">
-                    <ul class="result-parameters-list">
-                        
-                        <li class="result-parameter-url-wrapper">
-                            <div class="result-parameter-url-title-wrapper">
-                                <span class="translation-parameter-url-title">Select URL</span>
-                            </div>
-                            <div class="result-parameter-url-set-wrapper">
-                                <select name="" id="result-parameter-url-set">
-                                    <option value="google.com">google.com</option>
-                                </select>
-                            </div>
-                        </li>
-                        <li class="result-parameter-project-wrapper">
-                            <div class="result-translation-parameter-project-title-wrapper">
-                                <span class="result-parameter-project-title">Select Project</span>
-                            </div>
-                            <div class="result-parameter-project-set-wrapper">
-                                <select name="" id="result-parameter-project-set">
-                                    <option value="default">Default</option>
-                                    <option value="project 1">Project 1</option>
-                                    <option value="project 2">Project 2</option>
-                                </select>
-                            </div>
-                        </li>
-                        <li class="result-parameter-tags-wrapper">
-                            <div class="result-tagset-title-dropdown-wrapper">
-                                <div class="result-tagset-title-wrapper">
-                                    <span class="result-tagset-title">
-                                        Select Tags
-                                    </span>
-                                </div>
-                                <div class="result-tagset-dropdown-wrapper">
-                                    <select class="vocab-select" id="result-tag-select" name="result">
-                                        <option value="Spanish">Spanish</option>
-                                        <option value="Crypto">Crypto</option>
-                                        <option value="Dating">Dating</option>
-                                    </select>
-                                </div>
-                                <div class="result-tagset-add-wrapper">
-                                    <button class="vocab-button" id="result-add-tag">
-                                        Add
-                                    </button>
-                                </div>
-                            </div> 
-    
-                            <div class="result-tagset-selected-wrapper">
-                                <div class="vocab-tags-selected-background">
-                                    <ul class="vocab-tags-selected-list" id="result-tags-selected-list">
-    
-                                        
-                                        
-                                    </ul>
-                                </div>
-                            </div>
-                        </li>
-                    
-                        <li class="result-parameter-buttons-wrapper">
-                            <div>
-                                <button class="vocab-button" id="result-search">Search</button>
-                            </div>
-                            
-                        </li>
-                    </ul>
-                </div>
-            -->
-
 
             </section>
 
@@ -385,9 +311,7 @@
                             </div>
                             <div class="translation-parameter-project-set-wrapper">
                                 <select name="" id="translation-parameter-project-set">
-                                    <option value="default">Default</option>
-                                    <option value="project 1">Project 1</option>
-                                    <option value="project 2">Project 2</option>
+                                    <!-- Project -->
                                 </select>
                             </div>
                         </li>
@@ -464,8 +388,8 @@
                                         <strong>Default Target Language</strong>
                                         <select class="add-project-target-language-select" name="target-language"
                                             id="add-project-target-language-dropdown" value="add-project">
-                                            <option value="Spanish">Spanish</option>
-                                            <option value="English">English</option>
+                                            <!--
+                                            -->
                                         </select>
                                     </div>
 
@@ -474,8 +398,7 @@
 
                                         <select class="add-project-output-language-select" name="output-language"
                                             id="add-project-output-language-dropdown" value="add-project">
-                                            <option value="Spanish">Spanish</option>
-                                            <option value="English">English</option>
+                                            
                                         </select>
                                     </div>
                                 </div>
@@ -489,9 +412,7 @@
                                 <div class="add-project-tags-select-wrapper">
                                     <div class="add-project-tags-dropdown-wrapper">
                                         <select id="add-project-tags-dropdown" name="add-project">
-                                            <option value="Spanish">Spanish</option>
-                                            <option value="Business">Business</option>
-                                            <option value="Crypto">Crypto</option>
+                                            
                                         </select>
                                     </div>
                                     <div class="add-project-tags-add-wrapper">

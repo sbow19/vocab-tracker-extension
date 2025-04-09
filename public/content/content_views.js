@@ -10,7 +10,6 @@ let sendNewText = new MessageTemplate("add-new-text", {
 });
 
 //Injected Elements
-
 class Views {
   constructor() {}
 
@@ -67,10 +66,8 @@ class Views {
 
     document.documentElement.style.setProperty(
       "--view-bg-color",
-      "rgba(120, 120, 235, 1)"
+      "rgba(120, 120, 235, 0.5)"
     );
-    document.documentElement.style.setProperty("--extension-height", "200px");
-    document.documentElement.style.setProperty("--extension-width", "600px");
     document.documentElement.style.setProperty(
       "--placeholder-border",
       "1px solid black"
@@ -159,7 +156,6 @@ class TranslationView extends Views {
 }
 
 //Popup bubble object
-
 const popupBubbleView = document.createElement("div");
 
 popupBubbleView.innerHTML = `
@@ -174,7 +170,6 @@ const popupBubbleObject = new BubbleView(popupBubbleView, {
 });
 
 //Main translation popup object
-
 const translationPopupInner = document.createElement("div");
 
 translationPopupInner.id = "translation-popup";
@@ -203,14 +198,14 @@ translationPopupInner.innerHTML = `
                                 <select name="target-language" id="translation-target-language">
                                     <!---->
                                  </select>
-                                <textarea name="" id="translation-input-text" cols="50" rows="3" placeholder="Input"></textarea>
+                                <textarea name="" id="translation-input-text" cols="25" rows="2" maxlength="50" placeholder="Input"></textarea>
                             </div>
                             <div class="translation-output-text-wrapper">
                                 <label for="output-language">Select output language</label>
                                 <select name="output-language" id="translation-output-language">
                                     <!---->
                                 </select>
-                                <textarea name="" id="translation-output-text" cols="50" rows="3" placeholder="Output"></textarea>
+                                <textarea name="" id="translation-output-text" cols="25" rows="2" placeholder="Output"></textarea>
                             </div>
                         </div>
                     </div>
@@ -288,8 +283,6 @@ const translationPopupObject = new TranslationView(translationPopupInner, {
 //Resources Search
 
 async function resourceSearch() {
-  console.log(popupBubbleObject["elements"]["mainButton"]);
-
   let popUpBubbleImage = Views.shadowDOMHost.getElementById(
     popupBubbleObject["elements"]["mainButton"]
   );
@@ -297,20 +290,44 @@ async function resourceSearch() {
   popUpBubbleImage.src = await chrome.runtime.getURL(
     "assets/translation-icon.png"
   );
+}
 
-  console.log(popUpBubbleImage.src);
+function nodeConvert(nodeList) {
+  let newArray = Array.from(nodeList);
+  return newArray.map((node) => {
+    if (node.value === "default") return "default";
+    return JSON.parse(node.value);
+  });
+}
+
+function isJsonString(str) {
+  try {
+    JSON.parse(str);
+  } catch (e) {
+    return false;
+  }
+  return true;
 }
 
 //Listener for selected text
+let globals = {};
+let languages;
 
-let selectionText;
-
-let loadCount = 0;
 //The views need to be added before listeners can be added
 chrome.runtime.onMessage.addListener(async (request) => {
   if (request.load === "load content") {
+    // Set content
+    globals = request.data;
+
     //General reset for tags
-    function appendTags(tags) {
+    function appendTags(rawTags) {
+      let tags;
+      if (isJsonString(rawTags)) {
+        tags = JSON.parse(rawTags);
+      } else {
+        tags = rawTags;
+      }
+
       translationPopUpSelectedTags.innerHTML = "";
 
       if (tags.length > 0) {
@@ -320,14 +337,16 @@ chrome.runtime.onMessage.addListener(async (request) => {
           //Create tag class
           newTag.classList.add("vocab-tag-outer");
 
-          newTag.id = `translation-${tag}-tag`;
+          newTag.id = `translation-${tag.name}-tag`;
 
           newTag.innerHTML = `
                     
-                    <div class="vocab-tag-inner">
-                        <span>${tag}</span>
+                    <div class="vocab-tag-inner" value='${JSON.stringify(tag)}'>
+                        <span>${tag.name}</span>
                     </div>
-                    <div class="vocab-tag-delete" id="translation-${tag}-delete">
+                    <div class="vocab-tag-delete" id="translation-${
+                      tag.name
+                    }-delete">
                         <button> delete </button>
                     </div>
                     `;
@@ -336,7 +355,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
           translationPopUpSelectedTags.appendChild(newTag);
 
           let deleteTag = Views.shadowDOMHost.getElementById(
-            `translation-${tag}-delete`
+            `translation-${tag.name}-delete`
           );
 
           deleteTag.addEventListener("click", () => {
@@ -350,14 +369,14 @@ chrome.runtime.onMessage.addListener(async (request) => {
 
     function appendAllProjectDropDown(projectList) {
       translationPopUpProject.innerHTML =
-        "<option value=`default`>All Projects</option>";
+        "<option value='default'>default</option>";
       //creating new option element for project
-      for (project of projectList) {
+      for (let project of Object.values(projectList)) {
         let newProjectNameElement = document.createElement("option");
 
-        newProjectNameElement.setAttribute("value", project);
+        newProjectNameElement.setAttribute("value", JSON.stringify(project));
 
-        newProjectNameElement.innerText = project;
+        newProjectNameElement.innerText = project.name;
 
         translationPopUpProject.appendChild(newProjectNameElement);
       }
@@ -371,20 +390,29 @@ chrome.runtime.onMessage.addListener(async (request) => {
       } else {
         translationPopUpTagsList.innerHTML = "";
 
-        for (let t of allTagsList) {
-          let newTag = document.createElement("option");
+        // Generic dropdowns
+        //Check whether there are any tags in storage
+        if (allTagsList.length === 0) {
+          translationPopUpTagsList.innerHTML =
+            "<option value=`default`>No Tags Created</option>";
+        } else {
+          translationPopUpTagsList.innerHTML = "";
 
-          newTag.innerText = t;
+          for (let t of allTagsList) {
+            let newTag = document.createElement("option");
 
-          newTag.value = t;
+            newTag.innerText = t.name;
 
-          //Append new tag
-          translationPopUpTagsList.appendChild(newTag);
+            newTag.setAttribute("value", JSON.stringify(t));
+
+            //Append new tag
+            translationPopUpTagsList.appendChild(newTag);
+          }
         }
       }
     }
 
-    async function appendAllLanguagesDropDown(allLanguagesList) {
+    function appendAllLanguagesDropDown(allLanguagesList) {
       //Check whether there are any tags in storage
       if (allLanguagesList.length === 0) {
         translationPopUpTargetLanguage.innerHTML =
@@ -413,40 +441,10 @@ chrome.runtime.onMessage.addListener(async (request) => {
         }
 
         try {
-          let currentProject = await chrome.storage.local.get([
-            "currentProject",
-          ]);
-
-          let currentProjectName = Object.keys(
-            currentProject["currentProject"]
-          );
-
-          let allProjectDetailsRequest = await chrome.storage.local.get([
-            "allProjectDetails",
-          ]);
-
-          let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
-
-          let languagesList = allProjectDetails["allLanguages"];
-
-          currentProjectName = currentProjectName[0];
-
-          let currentProjectDetails =
-            currentProject["currentProject"][currentProjectName];
-
-          let currentProjectTargetLanguage =
-            currentProjectDetails["target_language"];
-          let currentProjectOutputLanguage =
-            currentProjectDetails["output_language"];
-
-          //Check whether current project appears in all project details list
-
-          let indexSetTarget = languagesList.indexOf(
-            currentProjectTargetLanguage
-          );
-          let indexSetOutput = languagesList.indexOf(
-            currentProjectOutputLanguage
-          );
+          const { default_target_language, default_output_language } =
+            globals.currentProject;
+          let indexSetTarget = languages.indexOf(default_target_language);
+          let indexSetOutput = languages.indexOf(default_output_language);
 
           translationPopUpTargetLanguage.selectedIndex = indexSetTarget;
           translationPopUpOutputLanguage.selectedIndex = indexSetOutput;
@@ -456,45 +454,90 @@ chrome.runtime.onMessage.addListener(async (request) => {
       }
     }
 
-    function nodeConvert(nodeList) {
-      let newArray = Array.from(nodeList);
+    function setProjectDropDown() {
+      // Change project index for dropdowns
+      const projectNodeArray =
+        translationPopUpProject.querySelectorAll("option");
 
-      let finalArray = [];
+      const projectArray = nodeConvert(projectNodeArray);
 
-      for (let node of newArray) {
-        let htmltext = node.textContent;
+      let indexToSet;
+      projectArray.find((project, index) => {
+        if (project === "default") return false;
+        if (project.id === globals.currentProject.id) {
+          indexToSet = index;
+          return true;
+        }
+      });
 
-        htmltext = htmltext.replaceAll("\\n", "").trim();
-
-        finalArray.push(htmltext);
-      }
-
-      return finalArray;
+      translationPopUpProject.selectedIndex = indexToSet;
     }
 
-    async function setProjectDropDown(currentProjectReset) {
-      if (currentProjectReset === "default") {
-        let allProjectDetailsRequest = await chrome.storage.local.get([
-          "allProjectDetails",
-        ]);
+    function addTag() {
+      //If another element has the tag, then another tag will not be appeneded
+      const translationPopUpTagsListValue = JSON.parse(
+        translationPopUpTagsList.value
+      );
 
-        let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
+      if (
+        Views.shadowDOMHost.getElementById(
+          `translation-${translationPopUpTagsListValue.name}-tag`
+        )
+      )
+        return;
 
-        let currentProject = await chrome.storage.local.get(["currentProject"]);
+      let newTag = document.createElement("li");
+      //Create tag class
+      newTag.classList.add("vocab-tag-outer");
 
-        let currentProjectName = Object.keys(currentProject["currentProject"]);
+      newTag.id = `translation-${translationPopUpTagsListValue.name}-tag`;
 
-        currentProjectName = currentProjectName[0];
+      newTag.innerHTML = `  
+          <div class="vocab-tag-inner" value='${translationPopUpTagsList.value}'>
+              <span>${translationPopUpTagsListValue.name}</span>
+          </div>
+          <div class="vocab-tag-delete" id="translation-${translationPopUpTagsListValue.name}-delete" >
+              <button> delete </button>
+          </div>
+          `;
 
-        //Check whether current project appears in all project details list
+      //Append new tag
+      translationPopUpSelectedTags.appendChild(newTag);
 
-        let indexSet =
-          allProjectDetails["allProjects"].indexOf(currentProjectName);
+      let deleteTag = Views.shadowDOMHost.getElementById(
+        `translation-${translationPopUpTagsListValue.name}-delete`
+      );
 
-        translationPopUpProject.selectedIndex = indexSet + 1;
-      } else {
-        translationPopUpProject.selectedIndex = 0;
+      console.log(`translation-${translationPopUpTagsListValue.name}-delete`);
+      console.log(deleteTag);
+
+      deleteTag.addEventListener("click", (e) => {
+        //Moves list element on click
+        deleteTag.parentNode.remove();
+      });
+    }
+
+    function getTags(querySelector) {
+      //This function will be used for other parts of the UI
+
+      let tagsNodeList = document.querySelectorAll(
+        `${querySelector} > li .vocab-tag-inner`
+      );
+
+      let tagsList = [];
+
+      for (let tag of tagsNodeList) {
+        const tagValue = tag.getAttribute("value");
+
+        if (isJsonString(tagValue)) {
+          const parsedTagData = JSON.parse(tagValue);
+          tagsList.push(parsedTagData);
+        } else {
+          tagsList.push(tagValue);
+        }
       }
+
+      return tagsList;
     }
 
     //Setting Shadow DOM host on load
@@ -509,7 +552,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
     resourceSearch();
 
     ////Translation popup elements
-
     let translationPopupInput = Views.shadowDOMHost.getElementById(
       translationPopupObject["elements"]["input"]
     );
@@ -534,76 +576,30 @@ chrome.runtime.onMessage.addListener(async (request) => {
     let translationPopUpTagsList = Views.shadowDOMHost.getElementById(
       "translation-tag-select"
     );
-
-    //Setting project details on initial load
-
-    //Gets all other content details saved in local- storage.
-
-    let allProjectDetailsRequest = await chrome.storage.local.get([
-      "allProjectDetails",
-    ]);
-
-    let allProjectDetails = allProjectDetailsRequest["allProjectDetails"];
+    let translationAddTagList = Views.shadowDOMHost.getElementById(
+      "translation-add-tag"
+    );
 
     //Append all projects in local storage
-    appendAllProjectDropDown(allProjectDetails["allProjects"]);
+    appendAllProjectDropDown(globals.projects);
+
+    // Set the current project in dropdown
+    setProjectDropDown();
 
     //Append all tags in local storage
-    appendAllTagsDropDown(allProjectDetails["allTags"]);
+    appendAllTagsDropDown(globals.tags);
 
     //Append all languages in local storage
-
-    appendAllLanguagesDropDown(allProjectDetails["allLanguages"]);
+    const { allLanguages } = await chrome.storage.local.get(["allLanguages"]);
+    languages = allLanguages;
+    appendAllLanguagesDropDown(allLanguages);
 
     //Try getting current project details
-
-    try {
-      let currentProjectRequest = await chrome.storage.local.get([
-        "currentProject",
-      ]);
-
-      let currentProject = currentProjectRequest["currentProject"];
-
-      let [currentProjectName] = Object.keys(currentProject);
-
-      let currentProjectDetails = currentProject[currentProjectName];
-
-      //set index of project in project dropdown
-
-      let indexToSetProject =
-        allProjectDetails["allProjects"].indexOf(currentProjectName);
-
-      translationPopUpProject.selectedIndex = indexToSetProject + 1;
-
-      //set index of target language
-
-      let targetLanguage = currentProjectDetails["target_language"];
-
-      let indexToSetTargetLanguage =
-        allProjectDetails["allLanguages"].indexOf(targetLanguage);
-
-      translationPopUpTargetLanguage.selectedIndex = indexToSetTargetLanguage;
-
-      //set index of output language
-
-      let outputLanguage = currentProjectDetails["output_language"];
-
-      let indexToSetOutputLanguage =
-        allProjectDetails["allLanguages"].indexOf(outputLanguage);
-
-      translationPopUpTargetLanguage.selectedIndex = indexToSetOutputLanguage;
-
-      //set tags
-
-      appendTags(currentProjectDetails["tags"]);
-    } catch (e) {
-      console.log(e);
-    }
+    appendTags(globals.currentProject.tags);
 
     //Main event listeners on pop up views
 
     //View display logic
-
     document.addEventListener("mousemove", (event) => {
       //Dynamically update the view popup location to the mouse cursor position
       Views.xPos = event.clientX + document.documentElement.scrollLeft;
@@ -611,10 +607,8 @@ chrome.runtime.onMessage.addListener(async (request) => {
     });
 
     //Pop up navigation logic
-
     let translationViewClicked = false;
     let bubbleViewClicked = false;
-
     let selectionString;
 
     document.addEventListener("mouseup", () => {
@@ -628,9 +622,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
         translationViewClicked == false
       ) {
         //If there is a selection and bubble view has not been activated yet, it will display.
-
-        console.log(popupBubbleObject);
-
         Views.changeView(popupBubbleObject.view);
         bubbleViewClicked = true;
       } else if (bubbleViewClicked == true && selectionString.length === 0) {
@@ -648,6 +639,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
       }
     });
 
+    // Make translation view appear
     Views.shadowDOMHost
       .getElementById(popupBubbleObject["elements"]["mainButton"])
       .addEventListener("click", (e) => {
@@ -660,7 +652,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
         translationPopupSave.focus();
 
         //The string which is to be adpoted by the translation view is set here. SelectionString will reset to 0 on click
-        translationPopupInput.value = selectionString;
+        translationPopupInput.value = selectionString.slice(0, 50);
 
         //These functions start the API call
         resetTimer();
@@ -671,7 +663,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
       });
 
     //Double click resets both views to hidden.
-
     document.addEventListener("dblclick", () => {
       Views.changeView("none");
       translationViewClicked = false;
@@ -682,41 +673,63 @@ chrome.runtime.onMessage.addListener(async (request) => {
       translationPopupOutput.value = null;
     });
 
+    // Save new translation object
     translationPopupSave.addEventListener("click", async (e) => {
       e.stopPropagation();
+      const projectObject = JSON.parse(translationPopUpProject.value);
 
-      //Get tags
-      let tagsNodelist =
-        translationPopUpSelectedTags.querySelectorAll(".vocab-tag-inner");
-
-      let tagsList = nodeConvert(tagsNodelist);
+      const { currentTab } = await chrome.storage.local.get(["currentTab"]);
 
       let translationObject = {
-        foreign_word: translationPopupInput.value,
-        translated_word: translationPopupOutput.value,
+        target_word: translationPopupInput.value,
+        output_word: translationPopupOutput.value,
         target_language: translationPopUpTargetLanguage.value,
         output_language: translationPopUpOutputLanguage.value,
-        source_url: "",
-        base_url: "",
-        tags: tagsList,
-        project: translationPopUpProject.value,
+        url: currentTab.url,
+        tags: JSON.stringify(getTags("#translation-tags-selected-list")),
+        id: crypto.randomUUID(),
+        projectId: projectObject.id,
+        projectName: projectObject.name,
       };
 
-      sendNewText.details.details = translationObject;
+      const sendNewText = new MessageTemplate(
+        "add-new-text",
+        translationObject
+      );
 
-      console.log(sendNewText);
+      try {
+        // Need to update entries n
+        const response = await chrome.runtime.sendMessage(sendNewText);
+        if (!response.success) return;
 
-      chrome.runtime.sendMessage(sendNewText);
+        translationObject.tags = JSON.parse(translationObject.tags);
+
+        // Update global values
+        globals.projects[projectObject.id].entries[translationObject.id] =
+          translationObject;
+
+        if (projectObject.id === globals.currentProject.id) {
+          globals.currentProject.entries[translationObject.id] =
+            translationObject;
+        }
+      } catch (e) {
+        console.log(e);
+        return;
+      }
 
       //Popup navigation logic
       Views.changeView("none");
       translationViewClicked = false;
-      translationPopupInput.value = null;
-      translationPopupOutput.value = null;
+      translationPopupInput.value = "";
+      translationPopupOutput.value = "";
+    });
+
+    // Add tag to translation add selectred area
+    translationAddTagList.addEventListener("click", () => {
+      addTag();
     });
 
     //Make popup draggable
-
     Views.shadowDOMHost
       .getElementById("translation-popup")
       .addEventListener("dragstart", (ev) => {
@@ -755,132 +768,43 @@ chrome.runtime.onMessage.addListener(async (request) => {
       event.dataTransfer.clearData();
     });
 
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.message === "set-project-details") {
-        console.log(request);
+    /**
+     * New project details from background
+     */
+    chrome.runtime.onMessage.addListener(async (request) => {
+      if (request.message === "set-content") {
+        console.log(request)
 
-        let projectOptionsNodeList =
-          translationPopUpProject.querySelectorAll("option");
-        let targetLanguageOptionsNodeList =
-          translationPopUpTargetLanguage.querySelectorAll("option");
-        let outputLanguageOptionsNodeList =
-          translationPopUpOutputLanguage.querySelectorAll("option");
+        // Set content
+        globals = request.data;
 
-        let projectOptionsList = nodeConvert(projectOptionsNodeList);
-        let targetLanguageOptionsList = nodeConvert(
-          targetLanguageOptionsNodeList
-        );
-        let outputLanguageOptionsList = nodeConvert(
-          outputLanguageOptionsNodeList
-        );
+        //Append all projects in local storage
+        appendAllProjectDropDown(globals.projects);
 
-        //Check whether Service Worker reset current Project to nil
-        if (request.details.projectName === "default") {
-          //Reset tags to nil
-
-          appendTags([]);
-
-          //Reset language
-
-          translationPopUpTargetLanguage.selectedIndex = 0;
-          translationPopUpOutputLanguage.selectedIndex = 0;
-
-          //Reset projects
-
-          translationPopUpProject.selectedIndex = 0;
-        } else {
-          let projectName = request.details.projectName;
-
-          let { tags, target_language, output_language, urls } =
-            request.details.projectDetails[projectName];
-
-          //Set tags
-
-          appendTags(tags);
-
-          //Set current project
-
-          console.log(projectOptionsList);
-
-          let indexToSetProject = projectOptionsList.indexOf(projectName);
-
-          translationPopUpProject.selectedIndex = indexToSetProject;
-
-          //Set language index
-
-          let indexToSetTargetLanguage =
-            targetLanguageOptionsList.indexOf(target_language);
-
-          translationPopUpTargetLanguage.selectedIndex =
-            indexToSetTargetLanguage;
-
-          let indexToSetOutputLanguage =
-            outputLanguageOptionsList.indexOf(output_language);
-
-          translationPopUpOutputLanguage.selectedIndex =
-            indexToSetOutputLanguage;
-        }
-      }
-    });
-
-    //Update new projects
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.message === "add-new-project-details") {
-        let allProjectsList = request.details.projectList;
-
-        appendAllProjectDropDown(allProjectsList);
+        // Set the current project in dropdown
         setProjectDropDown();
-      }
-    });
 
-    //Delete project
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.message === "update-projects") {
-        let allProjectsList = request.details.projectList;
+        //Append all tags in local storage
+        appendAllTagsDropDown(globals.tags);
 
-        appendAllProjectDropDown(allProjectsList);
+        //Append all languages in local storage
+        const { allLanguages } = await chrome.storage.local.get([
+          "allLanguages",
+        ]);
+        languages = allLanguages;
+        appendAllLanguagesDropDown(allLanguages);
 
-        if (request.details.removeCurrentProjectTags == true) {
-          appendTags([]);
-          setProjectDropDown("default");
-        }
-        setProjectDropDown("");
+        //Try getting current project details
+        appendTags(globals.currentProject.tags);
       }
     });
 
     //Setting project within content view
-
     translationPopUpProject.addEventListener("change", async () => {
-      let currentProjectName = translationPopUpProject.value;
-
-      let currentProjectDetailsRequest = await chrome.storage.local.get([
-        currentProjectName,
-      ]);
-
-      let currentProjectDetails =
-        currentProjectDetailsRequest[currentProjectName];
-
-      let currentProjectTags = currentProjectDetails?.tags;
-
-      appendTags(currentProjectTags);
-    });
-
-    //Update tags
-
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.message === "update-tags") {
-        appendAllTagsDropDown(request.details.tagsList);
-      }
-    });
-
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.message === "update-current-tags") {
-        appendTags(request.details.tagsList);
-      }
+      /* IMPLEMENT */
     });
 
     //Translation logic
-
     const translateMessage = new MessageTemplate("translate", {
       targetLanguage: "",
       outputLanguage: "",
@@ -916,8 +840,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
     translationPopupInput.addEventListener("input", (e) => {
       e.stopPropagation();
 
-      console.log(e);
-
       resetTimer();
       startTimer();
     });
@@ -927,16 +849,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
         request.message === "translation-result" &&
         request.details.targetView === "content-view"
       ) {
-        console.log(request);
-
         translationPopupOutput.value = request.details.resultDetails;
-      }
-    });
-
-    //update language on change
-    chrome.runtime.onMessage.addListener((request) => {
-      if (request.message === "update-current-language") {
-        appendAllLanguagesDropDown(allProjectDetails["allLanguages"]);
       }
     });
 
@@ -974,7 +887,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
 //Styling for
 
 //CSS  Styles for Shadow DOM
-
 const sheet = new CSSStyleSheet();
 
 sheet.replace(`
@@ -984,8 +896,8 @@ sheet.replace(`
     --view-bg-color: rgba(120, 120, 235, 0.5);
     --secondary-bg-color: rgba(0, 255, 255, 0.432);
     --extension-height: 350px;
-    --extension-width: 600px;
-    --placeholder-border: 1px solid black;
+    --extension-width: 400px;
+    --placeholder-border: none;
     --custom-font-title: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
 }
 
@@ -1053,16 +965,18 @@ sheet.replace(`
     color-scheme: normal;
     font-family:initial;
     line-height: initial;
-    height: var(--extension-height);
-    width: var(--extension-width);
+    min-height: 200px;
+    max-height:200px;
+    min-width: 400px;
+    max-width:400px;
     border: solid 2px;
+    padding: 2px;
     border-radius: 10px;
-    margin: 10px;
-    padding: 10px;
     display: flex;
     flex-direction: column;
+    background-color: white;
+
     justify-content: space-between;
-    background-color: var(--view-bg-color);
     box-shadow: 0px 0px 4px 2px rgba(0, 0, 0, 0.733);
     pointer-events: auto
 
@@ -1071,17 +985,20 @@ sheet.replace(`
 /*Translation pop up styling*/
 
 .translation-view-wrapper{
-    border: var(--placeholder-border);
     margin:0;
-    height: 100%;
-    width: 100%;
+    background-color: var(--view-bg-color);
+
+    min-height: 200px;
+    max-height:200px;
+    min-width: 400px;
+    max-width:400px;
+    overflow:hidden;
     display: flex;
     justify-content: space-around;
 }
 
 .translation-view-title-wrapper{
     display:flex;
-    border: var(--placeholder-border);
     height:10%;
 }
 
@@ -1089,19 +1006,22 @@ sheet.replace(`
     display:flex;
     flex-direction: column;
     justify-content: space-around;
-    flex:2.5;
-    border: var(--placeholder-border);
+    min-width: 235px;
+    max-width: 235px;
 
 }
 
 .translation-input-output-wrapper-inner{
-    border: var(--placeholder-border);
+    border: 1px solid black;
+    border-radius: 10px;
+    box-shadow: 1px 1px 1px 1px black;
+    overflow: hidden;
     display:flex;
     flex-direction: column;
     justify-content: space-evenly;
-    height:70%;
-    margin-top: 10px;
-    margin-right: 5px;
+    height:80%;
+    margin-top: 5px;
+    margin-right: 3px;
 }
 
 .translation-input-output-wrapper textarea{
@@ -1119,15 +1039,18 @@ sheet.replace(`
 
 .translation-parameters-wrapper{
     display: flex;
-    flex:1;
-    border: var(--placeholder-border);
+    min-width: 150px;
+    max-width: 150px;
+    border: 1px solid black;
+    border-radius: 10px;
+    box-shadow: 1px 1px 1px 1px black;
+    overflow: hidden
     
 }
 
 .translation-parameters-list{
     display:flex;
     flex-direction: column;
-    border: var(--placeholder-border);
     margin:0;
     width:100%;
     height:100%;
@@ -1135,7 +1058,6 @@ sheet.replace(`
 }
 
 .translation-parameters-list > li{
-    border: var(--placeholder-border);
     margin: 0;
     list-style: none;
 }
@@ -1146,12 +1068,10 @@ sheet.replace(`
 
 .translation-parameter-language-wrapper{
     display:flex;
-    border: var(--placeholder-border);
     flex:1;
 }
 
 .translation-parameter-language-wrapper > div {
-    border: var(--placeholder-border);
     display:flex;
 }
 
@@ -1161,12 +1081,10 @@ sheet.replace(`
 
 .translation-parameter-project-wrapper{
     display:flex;
-    border: var(--placeholder-border);
     flex:1;
 }
 
 .translation-parameter-project-wrapper > div {
-    border: var(--placeholder-border);
     display:flex;
 }
 
@@ -1187,8 +1105,8 @@ sheet.replace(`
     max-width:55%;
 }
 .translation-parameter-tags-wrapper{
-    flex:2;
-    max-height:60%;
+    min-height:45%;
+    max-height:45%;
     overflow:auto;
 }
 
@@ -1201,7 +1119,6 @@ sheet.replace(`
 .translation-tagset-selected-wrapper{
     height:45%;
     max-height:45%;
-    border: var(--placeholder-border);
     display:flex;
     flex-direction: column;
     margin:10px;

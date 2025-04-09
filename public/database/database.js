@@ -76,163 +76,6 @@ export class VocabDatabase {
     });
   }
 
-  static async addToDatabase(newTranslation) {
-    // let tx = await VocabDatabase.#makeTransaction("readwrite");
-
-    let store = tx.objectStore("vocab_default");
-
-    let request = store.add(newTranslation);
-  }
-
-  static async removeFromDatabase(entryValue) {
-    return new Promise(async (resolve, reject) => {
-      // let tx = await VocabDatabase.#makeTransaction("readwrite");
-
-      let store = tx.objectStore("vocab_default");
-
-      let request = store.delete(entryValue);
-
-      request.onsuccess = (ev) => {
-        resolve(ev.target.result);
-        console.log(ev.target.result);
-      };
-
-      request.onerror = (err) => {
-        reject(err);
-        console.log(err);
-      };
-    });
-  }
-
-  static retrieveFromDatabase(searchType, searchParameters) {
-    return new Promise(async (resolve, reject) => {
-      // let tx = await VocabDatabase.#makeTransaction("readonly");
-
-      let store = tx.objectStore("vocab_default");
-
-      if (searchType === "allProjects") {
-        let range = IDBKeyRange.only(searchParameters);
-
-        let index = store.index("project");
-
-        let request = index.getAll(range);
-
-        request.onsuccess = (ev) => {
-          console.log(request.result);
-
-          resolve(request.result);
-        };
-
-        request.onerror = (err) => {
-          console.log(err);
-          reject(err);
-        };
-      }
-
-      if (searchType === "allURLs") {
-        let range = IDBKeyRange.only(searchParameters);
-
-        let index = store.index("url");
-
-        let request = index.getAll(range);
-
-        request.onsuccess = (ev) => {
-          console.log(request.result);
-
-          resolve(request.result);
-        };
-
-        request.onerror = (err) => {
-          console.log(err);
-          reject(err);
-        };
-      }
-
-      if (searchType === "targetLanguage") {
-        let range = IDBKeyRange.only(searchParameters);
-
-        let index = store.index("target_language");
-
-        let request = index.getAll(range);
-
-        request.onsuccess = (ev) => {
-          console.log(request.result);
-
-          resolve(request.result);
-        };
-
-        request.onerror = (err) => {
-          console.log(err);
-          reject(err);
-        };
-      }
-
-      if (searchType === "outputLanguage") {
-        let range = IDBKeyRange.only(searchParameters);
-
-        let index = store.index("output_language");
-
-        let request = index.getAll(range);
-
-        request.onsuccess = (ev) => {
-          console.log(request.result);
-
-          resolve(request.result);
-        };
-
-        request.onerror = (err) => {
-          console.log(err);
-          reject(err);
-        };
-      }
-
-      if (searchType === "allTags") {
-        console.log(searchParameters);
-
-        let index = store.index("tags");
-
-        let range = IDBKeyRange.only(searchParameters);
-
-        let request = index.getAll(range);
-
-        request.onsuccess = (ev) => {
-          console.log(ev.target.result);
-
-          resolve(ev.target.result);
-        };
-      }
-    });
-  }
-
-  static async removeProject(projectName) {
-    let request = await VocabDatabase.#getIndexValues(projectName);
-    for (let entry of request) {
-      let result = await VocabDatabase.removeFromDatabase(entry.foreign_word);
-    }
-  }
-
-  static async #getIndexValues(projectName) {
-    return new Promise(async (resolve, reject) => {
-      let store = tx.objectStore("vocab_default");
-
-      let index = store.index("project");
-
-      let range = IDBKeyRange.only(projectName);
-
-      let request = index.getAll(range);
-
-      request.onsuccess = (ev) => {
-        resolve(request.result);
-      };
-
-      request.onerror = (err) => {
-        reject(err);
-      };
-    });
-  }
-
-  static exportSearch() {}
-
   /**
    *
    * @param {"tags" | "projects" | "currentProject"} dataType Fetch all entries of desired content
@@ -249,12 +92,13 @@ export class VocabDatabase {
 
       getAllRequest.onsuccess = (ev) => {
         const result = ev.target.result;
-
         resolve(result);
+        tx.commit();
       };
 
       getAllRequest.onerror = (ev) => {
         reject(ev.target.error);
+        tx.abort();
       };
     });
   }
@@ -270,7 +114,22 @@ export class VocabDatabase {
 
       const store = tx.objectStore("currentProject");
 
-      const setRequest = store.put(project, 0);
+      let projectToSet;
+
+      if (project === "default") {
+        projectToSet = {
+          id: "default",
+          name: "default",
+          default_target_language: "Spanish",
+          default_output_language: "Spanish",
+          tags: "[]",
+          entries: "{}",
+        };
+      } else {
+        projectToSet = project;
+      }
+
+      const setRequest = store.put(projectToSet, 0);
 
       setRequest.onsuccess = (ev) => {
         const result = ev.target.result;
@@ -280,6 +139,45 @@ export class VocabDatabase {
 
       setRequest.onerror = (ev) => {
         reject(ev.target.error);
+      };
+    });
+  }
+
+  static updateCurrentProject(project) {
+    return new Promise(async (resolve, reject) => {
+      await VocabDatabase.openDatabase();
+
+      const tx = VocabDatabase.database.transaction(
+        ["currentProject", "projects"],
+        "readwrite"
+      );
+
+      const currentProjectStore = tx.objectStore("currentProject");
+      const projectsStore = tx.objectStore("projects");
+
+      const setRequest = currentProjectStore.put(project, 0);
+
+      setRequest.onsuccess = (ev) => {
+        // Update currnt project in projectModels
+        const putModelRequest = projectsStore.put(project);
+
+        putModelRequest.onsuccess = (ev) => {
+          resolve(ev);
+          tx.commit();
+          return;
+        };
+
+        putModelRequest.onerror = () => {
+          reject(false);
+          tx.abort();
+          return;
+        };
+      };
+
+      setRequest.onerror = (ev) => {
+        reject(ev.target.error);
+        tx.abort();
+        return;
       };
     });
   }
@@ -325,10 +223,11 @@ export class VocabDatabase {
         }
         case "add-entry": {
           const tx = VocabDatabase.database.transaction(
-            "projects",
+            ["projects", "currentProject"],
             "readwrite"
           );
           const projectsStore = tx.objectStore("projects");
+          const currentProjectStore = tx.objectStore("currentProject");
 
           // Get project by id
           const getProjectRequest = projectsStore.get(data.projectId);
@@ -336,17 +235,53 @@ export class VocabDatabase {
           getProjectRequest.onsuccess = (ev) => {
             // Project object
             const result = ev.target.result;
-
-            result["entries"][data.id] = data;
+            const entries = JSON.parse(result.entries);
+            entries[data.id] = data;
+            result.entries = JSON.stringify(entries);
 
             // Overwrite the current
             const addRequest = projectsStore.put(result);
 
             addRequest.onsuccess = (ev) => {
-              resolve(ev);
+              const getCurrentProjectRequest = currentProjectStore.get(0);
+
+              getCurrentProjectRequest.onsuccess = (ev) => {
+                const result = ev.target.result;
+
+                if (result.id !== data.projectId) {
+                  resolve(true);
+                  tx.commit();
+                  return;
+                }
+
+                const entries = JSON.parse(result.entries);
+                entries[data.id] = data;
+                result.entries = JSON.stringify(entries);
+
+                const currentProjectPutRequest = currentProjectStore.put(result, 0);
+
+                currentProjectPutRequest.onsuccess = ()=>{
+                  resolve(true)
+                  tx.commit()
+                  return
+                }
+                currentProjectPutRequest.onerror = ()=>{
+                  reject(false)
+                  tx.abort()
+                  return
+                }
+              };
+
+              getCurrentProjectRequest.onerror = () => {
+                tx.abort();
+                reject(false);
+                return;
+              };
             };
             addRequest.onerror = (ev) => {
               reject(ev);
+              tx.abort();
+              return;
             };
           };
 
@@ -386,32 +321,208 @@ export class VocabDatabase {
 
                 if (result.id !== data) {
                   resolve(ev);
-                  tx.commit()
+                  tx.commit();
                   return;
                 }
 
                 const deleteCRequest = currentProjectStore.delete(0);
                 deleteCRequest.onsuccess = (e) => {
                   resolve(e);
-                  tx.commit()
+                  tx.commit();
                 };
                 deleteCRequest.onerror = (e) => {
                   reject(e);
-                  tx.abort()
+                  tx.abort();
                 };
               };
 
               currentProjectRequest.onerror = (ev) => {
                 reject(ev);
-                tx.abort()
+                tx.abort();
               };
             };
 
             deleteRequest.onerror = (ev) => {
               reject(ev);
-              tx.abort()
+              tx.abort();
             };
           }
+          break;
+        case "tag":
+          // Remove tags from all projects and current project
+          {
+            const tx = VocabDatabase.database.transaction(
+              ["tags", "projects", "currentProject"],
+              "readwrite"
+            );
+
+            const projectsStore = tx.objectStore("projects");
+            const tagsStore = tx.objectStore("tags");
+            const currentProjectStore = tx.objectStore("currentProject");
+
+            // Delete tag by key
+            const deleteTagRequest = tagsStore.delete(data);
+
+            deleteTagRequest.onsuccess = (ev) => {
+              //Start current project check
+              const currentProjectRequest = currentProjectStore.get(0);
+
+              currentProjectRequest.onsuccess = (ev) => {
+                const result = ev.target.result;
+                if (result) {
+                  // remove tag from currentProject and replace
+                  const parsedTags = JSON.parse(result.tags);
+                  const filtered = parsedTags.filter((tag) => {
+                    if (tag.id === data) return false;
+                    return true;
+                  });
+                  result.tags = JSON.stringify(filtered);
+                }
+                const replaceRequest = currentProjectStore.put(result, 0);
+
+                replaceRequest.onsuccess = (e) => {
+                  //Start current project check
+                  const allProjectsRequest = projectsStore.getAll();
+
+                  allProjectsRequest.onsuccess = (ev) => {
+                    const projectArray = ev.target.result;
+                    let i = 0;
+                    putNext();
+
+                    // Recursively cycle through list, calling the next iteration after a success
+                    function putNext() {
+                      if (i < projectArray.length) {
+                        // Set single project
+                        const parsedTags = JSON.parse(projectArray[i].tags);
+
+                        projectArray[i].tags = JSON.stringify(
+                          parsedTags.filter((singleTag) => {
+                            if (singleTag.id === data) return false;
+                            return true;
+                          })
+                        );
+                        const newPutRequest = projectsStore.put(
+                          projectArray[i]
+                        );
+
+                        newPutRequest.onsuccess = putNext;
+                        newPutRequest.onerror = (e) => {
+                          reject(e);
+                          tx.abort();
+                          return;
+                        };
+
+                        i += 1;
+                      } else {
+                        resolve(true);
+                        tx.commit();
+                        return;
+                      }
+                    }
+                  };
+
+                  allProjectsRequest.onerror = (e) => {
+                    reject(e);
+                    tx.abort();
+                  };
+                };
+                replaceRequest.onerror = (e) => {
+                  reject(e);
+                  tx.abort();
+                };
+              };
+
+              currentProjectRequest.onerror = (ev) => {
+                reject(ev);
+                tx.abort();
+              };
+            };
+
+            deleteTagRequest.onerror = (ev) => {
+              reject(ev);
+              tx.abort();
+              return;
+            };
+
+            // Delete tag from current, if exists
+          }
+          break;
+        case "entry":
+          {
+            const tx = VocabDatabase.database.transaction(
+              ["projects", "currentProject"],
+              "readwrite"
+            );
+
+            const projectsStore = tx.objectStore("projects");
+            const currentProjectStore = tx.objectStore("currentProject");
+
+            // Find entry by project id
+            const projectStoreGetRequest = projectsStore.get(data.projectId);
+
+            projectStoreGetRequest.onsuccess = (ev) => {
+              const result = ev.target.result;
+              const entries = JSON.parse(result.entries);
+              delete entries[data.id];
+              result.entries = JSON.stringify(entries);
+
+              const projectPutRequest = projectsStore.put(result);
+
+              projectPutRequest.onsuccess = (ev) => {
+                const currentStoreRequest = currentProjectStore.get(0);
+
+                currentStoreRequest.onsuccess = (e) => {
+                  const currentProject = e.target.result;
+
+                  if (currentProject.id !== data.projectId) {
+                    resolve(e);
+                    tx.commit();
+                    return;
+                  }
+
+                  const currentProjectEntries = JSON.parse(
+                    currentProject.entries
+                  );
+                  delete currentProjectEntries[data.id];
+                  currentProject.entries = JSON.stringify(
+                    currentProjectEntries
+                  );
+
+                  const currentStorePut =
+                    currentProjectStore.put(currentProject);
+                  currentStorePut.onsuccess = (ev) => {
+                    resolve(ev);
+                    tx.commit();
+                    return;
+                  };
+                  currentStorePut.onerror = (ev) => {
+                    reject(ev);
+                    tx.abort();
+                    return;
+                  };
+                };
+
+                currentStoreRequest.onerror = (e) => {
+                  reject(ev);
+                  tx.abort();
+                };
+              };
+
+              projectPutRequest.onerror = (ev) => {
+                tx.abort();
+                reject(ev);
+                return;
+              };
+            };
+
+            projectStoreGetRequest.onerror = (ev) => {
+              reject(ev);
+              tx.abort();
+            };
+          }
+          break;
+        default:
+          reject(false);
           break;
       }
     });
