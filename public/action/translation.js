@@ -104,7 +104,6 @@ translationSave.addEventListener("click", async () => {
 });
 
 
-
 let timer;
 // Start timer for automatic translation of input text
 function startTimer() {
@@ -135,6 +134,7 @@ function startTimer() {
         if(!result.success){
           translationOutput.value = "Oops... something went wrong"
         }
+        translationOutput.value = result.text;
       }catch(e){
 
         console.log("Error translating")
@@ -197,12 +197,13 @@ translateButton.addEventListener("click", async (e) => {
     translateMessage.details.targetText = translationStringInput;
 
     //Send message to initiate translation
-
     try {
       const result = await chrome.runtime.sendMessage(translateMessage);
       if(!result.success){
         translationOutput.value = "Oops... something went wrong"
       }
+
+      translationOutput.value = result.text;
     } catch (e) {
       translationOutput.value = "Unable to complete request";
     }

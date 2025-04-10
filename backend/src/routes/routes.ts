@@ -88,7 +88,7 @@ const routes = {
 
     try {
       response = await fetch(
-        "https://api.deepl.com/v2/translate",
+        "https://api-free.deepl.com/v2/translate",
         fetchOptions
       );
     } catch (e) {
@@ -144,10 +144,9 @@ const routes = {
       res.end("\n");
     } else {
       const resBod = await response.json();
-
+      
       routeLogger.info({
         message: "Data fetched successfully",
-        res: response,
         data: resBod,
         options: fetchOptions,
       });
@@ -156,7 +155,7 @@ const routes = {
       res.setHeader("Content-Type", "application/json");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.writeHead(200);
-      res.write(resBod);
+      res.write(JSON.stringify(resBod));
       res.end("\n");
     }
   },

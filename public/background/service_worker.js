@@ -2,27 +2,6 @@
 import { VocabDatabase } from "/database/database.js";
 import { DeeplTranslate } from "/translation/translation.js";
 
-/*
-
-Chrome local object structure
-
-index: default
-
-project, (string)
-foreign_word, (string)
-target_language, (string)
-output_language, (string)
-tags, (array)
-translated_word, (string),
-source_url, (string)
-base_url, (string)
-
-*/
-
-//General functions
-
-// Wrap content in local scope to avoid global collisions
-
 //Set current tab in local storage
 async function getCurrentTab(tabId) {
   let tab = await chrome.tabs.get(tabId);
@@ -95,13 +74,6 @@ chrome.tabs.onRemoved.addListener(async (result) => {
 /* Listener which creates the initial IndexedDB on first install. Deletes same
 when uninstalled.
 */
-
-class MessageTemplate {
-  constructor(message, details) {
-    this.message = message;
-    this.details = details;
-  }
-}
 
 chrome.runtime.onInstalled.addListener(async (details) => {
   //Open a new database on first install. Data will persist even after Extension is deleted
@@ -437,10 +409,6 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-const translationMessage = new MessageTemplate("translation-result", {
-  resultDetails: {},
-  targetView: "",
-});
 
 //Deeply translateButton
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
@@ -454,8 +422,11 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     DeeplTranslate.translate(searchTerms)
       .then((res) => {
-        sendResponse({
+        console.log(res)
+
+          sendResponse({
           success: true,
+          text: res.text
         });
       })
       .catch((e) => {
