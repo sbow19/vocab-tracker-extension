@@ -87,7 +87,9 @@ export class DeeplTranslate {
       // Ping backend server
       try {
         let apiResponse = await fetch(
-          "https://vocab-tracker-extension.onrender.com/translate",
+          // "https://vocab-tracker-extension.onrender.com/translate",
+          "http://localhost:3000/translate",
+
           requestOptions
         );
 
