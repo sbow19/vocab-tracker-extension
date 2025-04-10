@@ -16,6 +16,8 @@ class Views {
   //This property sets the value of the shadowDOM
   static shadowDOMHost = null;
 
+  static hasLoaded = false
+
   static childShadowDOMHost = null;
 
   /*These properties set the location of views based on the cursor location*/
@@ -47,9 +49,14 @@ class Views {
   }
 
   static setShadowDOMHost(sheet) {
+    // Check if element already exists
+    const element = document.getElementById("shadow-host-vocab");
+    if(element)return
+
+
     let host = document.createElement("div");
 
-    host.setAttribute("id", "shadow-host");
+    host.setAttribute("id", "shadow-host-vocab");
 
     let body = document.querySelector("body");
 
@@ -102,6 +109,7 @@ class Views {
   }
 
   static appendView(view) {
+    if(Views.hasLoaded)return
     view.style.display = "none";
     Views.childShadowDOMHost.appendChild(view);
   }
@@ -313,9 +321,11 @@ function isJsonString(str) {
 let globals = {};
 let languages;
 
+
 //The views need to be added before listeners can be added
 chrome.runtime.onMessage.addListener(async (request) => {
-  if (request.load === "load content") {
+  if (request.load === "load content" && !Views.hasLoaded) {
+
     // Set content
     globals = request.data;
 
@@ -541,7 +551,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
     Views.setShadowDOMHost(sheet);
 
     //When the DOM has loaded, the views are appeneded to the current page
-
     Views.appendView(popupBubbleObject.view);
     Views.appendView(translationPopupObject.view);
 
@@ -870,6 +879,9 @@ chrome.runtime.onMessage.addListener(async (request) => {
       host.style.minHeight = bodyHeight;
       host.style.minWidth = bodyWidth;
     });
+
+    // Set has loaded on global view
+    Views.hasLoaded = true
   }
 });
 
