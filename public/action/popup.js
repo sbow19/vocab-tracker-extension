@@ -51,8 +51,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   });
 
-  console.log(Globals.projectsModel)
-
   //Append all projects in local storage
   Projects.appendAllProjectDropDown(Globals.projectsModel);
   Projects.appendProjectSearchDropdown(Globals.projectsModel);

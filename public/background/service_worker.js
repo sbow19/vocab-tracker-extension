@@ -409,11 +409,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-
 //Deeply translateButton
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.message === "translate") {
-
     const searchTerms = {
       targetLanguage: request.details.targetLanguage,
       outputLanguage: request.details.outputLanguage,
@@ -422,16 +420,15 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
 
     DeeplTranslate.translate(searchTerms)
       .then((res) => {
-        console.log(res)
-
-          sendResponse({
+        sendResponse({
           success: true,
-          text: res.text
+          text: res.text,
         });
       })
       .catch((e) => {
         sendResponse({
           success: false,
+          text: "Oops... something went wrong",
         });
       });
 

@@ -262,7 +262,6 @@ resultClear.addEventListener("click", async () => {
 //Export button
 resultExport.addEventListener("click", () => {
   let blob;
-  console.log(globalResults)
   // Create a Blob from the JSON data
   blob = new Blob([JSON.stringify(globalResults, null, 2)], {
     type: "application/json",

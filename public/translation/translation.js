@@ -88,8 +88,6 @@ export class DeeplTranslate {
       try {
         let apiResponse = await fetch(
           "https://vocab-tracker-extension.onrender.com/translate",
-          // "http://localhost:3000/translate",
-
           requestOptions
         );
 

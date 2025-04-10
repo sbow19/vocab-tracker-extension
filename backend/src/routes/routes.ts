@@ -50,8 +50,8 @@ const routes = {
 
     // Route logger
     const routeLogger = logger.child({
-      appid: data.userRow.id
-    })
+      appid: data.userRow.id,
+    });
 
     // Get text
     const lenOfText = data.body.text.length;
@@ -98,7 +98,6 @@ const routes = {
         message: "Unable to fetch data from Deepl",
         res: e,
         options: fetchOptions,
-
       });
 
       res.setHeader("Content-Type", "text/html");
@@ -108,24 +107,6 @@ const routes = {
       res.end("\n");
       return;
     }
-
-    // TEST locatino for updating db
-    const date = new Date().getTime();
-    db.run(
-      "UPDATE operations SET last_operation = ?, number_of_characters = ? WHERE id = ?;",
-      [date, data.userRow.number_of_characters - lenOfText, data.userRow.id],
-      (err) => {
-        if (err) {
-          routeLogger.warn({
-            message: "Failed to update db"
-          })
-        }else{
-          routeLogger.warn({
-            message: "DB update successful"
-          })
-        }
-      }
-    );
 
     if (!response.ok) {
       routeLogger.error({
@@ -144,7 +125,7 @@ const routes = {
       res.end("\n");
     } else {
       const resBod = await response.json();
-      
+
       routeLogger.info({
         message: "Data fetched successfully",
         data: resBod,
@@ -157,6 +138,24 @@ const routes = {
       res.writeHead(200);
       res.write(JSON.stringify(resBod));
       res.end("\n");
+
+      // Update db details
+      const date = new Date().getTime();
+      db.run(
+        "UPDATE operations SET last_operation = ?, number_of_characters = ? WHERE id = ?;",
+        [date, data.userRow.number_of_characters - lenOfText, data.userRow.id],
+        (err) => {
+          if (err) {
+            routeLogger.warn({
+              message: "Failed to update db",
+            });
+          } else {
+            routeLogger.warn({
+              message: "DB update successful",
+            });
+          }
+        }
+      );
     }
   },
   "/notfound": function (data, res) {

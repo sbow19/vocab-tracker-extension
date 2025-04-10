@@ -44,7 +44,6 @@ addProjectCreate.addEventListener("click", async () => {
   try {
     await createProject(newProjectDetails);
   } catch (e) {
-    console.log("Could not create project");
     return;
   }
 

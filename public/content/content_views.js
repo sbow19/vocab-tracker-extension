@@ -508,9 +508,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
         `translation-${translationPopUpTagsListValue.name}-delete`
       );
 
-      console.log(`translation-${translationPopUpTagsListValue.name}-delete`);
-      console.log(deleteTag);
-
       deleteTag.addEventListener("click", (e) => {
         //Moves list element on click
         deleteTag.parentNode.remove();
@@ -773,8 +770,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
      */
     chrome.runtime.onMessage.addListener(async (request) => {
       if (request.message === "set-content") {
-        console.log(request)
-
         // Set content
         globals = request.data;
 
@@ -809,27 +804,31 @@ chrome.runtime.onMessage.addListener(async (request) => {
       targetLanguage: "",
       outputLanguage: "",
       targetText: "",
-      targetView: "",
     });
 
     let timer;
 
     function startTimer() {
-      timer = setTimeout(() => {
+      timer = setTimeout(async () => {
         let translationStringInput = translationPopupInput.value;
 
         //encode translate language message on click.
-
         translateMessage.details.targetLanguage =
           translationPopUpTargetLanguage.value;
         translateMessage.details.outputLanguage =
           translationPopUpOutputLanguage.value;
         translateMessage.details.targetText = translationStringInput;
-        translateMessage.details.targetView = "content-view";
 
-        //Send message to initiate translationS
-
-        chrome.runtime.sendMessage(translateMessage);
+        //Send message to initiate translation
+        try {
+          const result = await chrome.runtime.sendMessage(translateMessage);
+          if (!result.success) {
+            translationPopupOutput.value = "Oops... something went wrong";
+          }
+          translationPopupOutput.value = result.text;
+        } catch (e) {
+          console.log("Error translating");
+        }
       }, 500);
     }
 
@@ -842,15 +841,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
 
       resetTimer();
       startTimer();
-    });
-
-    chrome.runtime.onMessage.addListener((request) => {
-      if (
-        request.message === "translation-result" &&
-        request.details.targetView === "content-view"
-      ) {
-        translationPopupOutput.value = request.details.resultDetails;
-      }
     });
 
     //Trigger translation when changing languages
@@ -869,7 +859,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
     });
 
     //reset shadow DOM size when resized;
-
     window.addEventListener("resize", () => {
       let host = document.getElementById("shadow-host");
 

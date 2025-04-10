@@ -10,7 +10,6 @@ export class VocabDatabase {
       const request = indexedDB.open("VocabTrackerDatabase", 1);
 
       request.onerror = (event) => {
-        console.error("indexeddb failed to start");
         reject(event);
       };
 
