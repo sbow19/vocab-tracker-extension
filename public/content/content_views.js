@@ -194,14 +194,14 @@ translationPopupInner.innerHTML = `
 
                         <div class="translation-input-output-wrapper-inner">
                             <div class="translation-input-text-wrapper">
-                                <label for="target-language">Select target language</label>
+                                <strong>Select target language</strong>
                                 <select name="target-language" id="translation-target-language">
                                     <!---->
                                  </select>
                                 <textarea name="" id="translation-input-text" cols="25" rows="2" maxlength="50" placeholder="Input"></textarea>
                             </div>
                             <div class="translation-output-text-wrapper">
-                                <label for="output-language">Select output language</label>
+                                <strong>Select output language</strong>
                                 <select name="output-language" id="translation-output-language">
                                     <!---->
                                 </select>
@@ -982,6 +982,11 @@ sheet.replace(`
 
 }
 
+#content-wrapper {
+  border-radius: 10px;
+  overflow: hidden
+}
+
 /*Translation pop up styling*/
 
 .translation-view-wrapper{
@@ -994,18 +999,24 @@ sheet.replace(`
     max-width:400px;
     overflow:hidden;
     display: flex;
-    justify-content: space-around;
+    justify-content: space-between;
 }
 
 .translation-view-title-wrapper{
     display:flex;
-    height:10%;
+    height:15%;
+    width: 100%;
+    background-color: rgba(0, 255, 255, 0.432);
+    justify-content: center;
+    align-items: center;
+    font-weight: 600
+    
 }
 
 .translation-input-output-wrapper{
     display:flex;
     flex-direction: column;
-    justify-content: space-around;
+    justify-content: space-between;
     min-width: 235px;
     max-width: 235px;
 
@@ -1064,7 +1075,14 @@ sheet.replace(`
 
 /*parameters styling*/
 
-
+.translation-parameter-project-title-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  font-weight: 600;
+  text-align:center
+}
 
 .translation-parameter-language-wrapper{
     display:flex;

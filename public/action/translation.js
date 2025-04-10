@@ -10,6 +10,8 @@ import {
   translationOutput,
   translationTargetLanguageDropdown,
   translationOutputLanguageDropdown,
+  currentProjectTargetLanguageDropdown,
+  currentProjectOutputLanguageDropdown,
   translationTagsDropdown,
   translationTagSelection,
   translationProjectsDropdown,
@@ -17,12 +19,6 @@ import {
   translateButton,
 } from "./targets.js";
 
-const translateMessage = new MessageTemplate("translate", {
-  targetLanguage: "",
-  outputLanguage: "",
-  targetText: "",
-  targetView: "",
-});
 
 // Add tags to translation area. When save entry is triggered, this area is parsed for tag values
 translationAddTagButton.addEventListener("click", () => {
@@ -107,6 +103,53 @@ translationSave.addEventListener("click", async () => {
   translationOutput.value = "";
 });
 
+
+
+let timer;
+// Start timer for automatic translation of input text
+function startTimer() {
+  timer = setTimeout(async() => {
+    let translationStringInput = translationInput.value;
+
+    let inputStatus = Sanitiser.checkTranslationInput(translationStringInput);
+
+    if (inputStatus == true) {
+
+      const translateMessage = new MessageTemplate("translate", {
+        targetLanguage: "",
+        outputLanguage: "",
+        targetText: "",
+      });
+      //encode translate language message on click.
+      translateMessage.details.targetLanguage =
+        translationTargetLanguageDropdown.value;
+      translateMessage.details.outputLanguage =
+        translationOutputLanguageDropdown.value;
+      translateMessage.details.targetText = translationStringInput;
+
+    
+      //Send message to initiate translation
+      try{
+
+        const result = await chrome.runtime.sendMessage(translateMessage);
+        if(!result.success){
+          translationOutput.value = "Oops... something went wrong"
+        }
+      }catch(e){
+
+        console.log("Error translating")
+
+      }      
+    } else {
+      translationOutput.value =
+        "Max character limit reached. Only 50 characters permitted";
+    }
+  }, 1000);
+}
+function resetTimer() {
+  clearTimeout(timer);
+}
+
 translationOutputLanguageDropdown.addEventListener("change", (e) => {
   e.stopPropagation();
 
@@ -121,36 +164,6 @@ translationTargetLanguageDropdown.addEventListener("change", (e) => {
   startTimer();
 });
 
-let timer;
-
-function startTimer() {
-  timer = setTimeout(() => {
-    let translationStringInput = translationInput.value;
-
-    let inputStatus = Sanitiser.checkTranslationInput(translationStringInput);
-
-    if (inputStatus == true) {
-      //encode translate language message on click.
-      translateMessage.details.targetLanguage =
-        translationTargetLanguageDropdown.value;
-      translateMessage.details.outputLanguage =
-        translationOutputLanguageDropdown.value;
-      translateMessage.details.targetText = translationStringInput;
-      translateMessage.details.targetView = "translation-view";
-
-      //Send message to initiate translation
-      chrome.runtime.sendMessage(translateMessage);
-    } else {
-      translationOutput.value =
-        "Max character limit reached. Only 50 characters permitted";
-    }
-  }, 1000);
-}
-
-function resetTimer() {
-  clearTimeout(timer);
-}
-
 translationInput.addEventListener("input", (e) => {
   e.stopPropagation();
 
@@ -158,6 +171,7 @@ translationInput.addEventListener("input", (e) => {
   startTimer();
 });
 
+// Button on default view
 translateButton.addEventListener("click", async (e) => {
   e.stopPropagation();
 
@@ -170,24 +184,24 @@ translateButton.addEventListener("click", async (e) => {
 
   if (inputStatus == true) {
     //encode translate language message on click.
+    const translateMessage = new MessageTemplate("translate", {
+      targetLanguage: "",
+      outputLanguage: "",
+      targetText: "",
+    });
 
     translateMessage.details.targetLanguage =
       currentProjectTargetLanguageDropdown.value;
     translateMessage.details.outputLanguage =
       currentProjectOutputLanguageDropdown.value;
     translateMessage.details.targetText = translationStringInput;
-    translateMessage.details.targetView = "translation-view";
 
     //Send message to initiate translation
 
     try {
       const result = await chrome.runtime.sendMessage(translateMessage);
-
-      if (
-        result.message === "translation-result" &&
-        result.details.targetView === "translation-view"
-      ) {
-        translationOutput.value = result.details.resultDetails;
+      if(!result.success){
+        translationOutput.value = "Oops... something went wrong"
       }
     } catch (e) {
       translationOutput.value = "Unable to complete request";

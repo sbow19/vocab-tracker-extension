@@ -1,89 +1,108 @@
-export class DeeplTranslate{
+export class DeeplTranslate {
+  //No constructor necessary
 
-    //No constructor necessary
+  constructor() {}
 
-    constructor(){};
+  static #changeLanguageValue(target_lang, output_lang) {
+    let languageObject = {
+      Bulgarian: "BG",
+      Czech: "CS",
+      Danish: "DA",
+      Greek: "EL",
+      Estonian: "ET",
+      Finnish: "FI",
+      French: "FR",
+      Hungarian: "HU",
+      Indonesian: "ID",
+      Italian: "IT",
+      Japanese: "JA",
+      Korean: "KO",
+      Lithuanian: "LT",
+      Latvian: "LV",
+      Norwegian: "NB",
+      Dutch: "NL",
+      Polish: "PL",
+      Portuguese: "PT",
+      Romanian: "RO",
+      Russian: "RU",
+      Slovak: "SK",
+      Slovenian: "SL",
+      Swedish: "SV",
+      Turkish: "TR",
+      Ukrainian: "UK",
+      Chinese: "ZH",
+      Spanish: "ES",
+      English: "EN",
+      German: "DE",
+    };
 
-    static #changeLanguageValue(target_lang, output_lang){
+    let target_language_converted = languageObject[`${target_lang}`];
+    let output_language_converted = languageObject[`${output_lang}`];
 
-        let languageObject = {
-            Bulgarian: "BG",
-            Czech: "CS",
-            Danish: "DA",
-            Greek: "EL",
-            Estonian: "ET",
-            Finnish: "FI",
-            French: "FR",
-            Hungarian: "HU",
-            Indonesian: "ID",
-            Italian: "IT",
-            Japanese: "JA",
-            Korean: "KO",
-            Lithuanian: "LT",
-            Latvian: "LV",
-            Norwegian: "NB",
-            Dutch: "NL",
-            Polish: "PL",
-            Portuguese: "PT",
-            Romanian: "RO",
-            Russian: "RU",
-            Slovak: "SK",
-            Slovenian: "SL", 
-            Swedish: "SV",
-            Turkish: "TR",
-            Ukrainian: "UK",
-            Chinese: "ZH",
-            Spanish: "ES",
-            English: "EN",
-            German: "DE"
-        };
+    return [target_language_converted, output_language_converted];
+  }
 
-        let target_language_converted = languageObject[`${target_lang}`];
-        let output_language_converted = languageObject[`${output_lang}`];
+  static translate(searchTerms) {
+    return new Promise(async (resolve, reject) => {
+      let [target_language, output_language] = this.#changeLanguageValue(
+        searchTerms.targetLanguage,
+        searchTerms.outputLanguage
+      );
 
-        return [target_language_converted, output_language_converted]
-    }
+      // Get api key
+      const { appid } = await chrome.storage.local.get(["appid"]);
 
+      if (!appid) {
+        reject({
+          success: false,
+          message: "No app id, generating...",
+        });
+        try {
+          // Key for access to backend services
+          const newIdKey = crypto.randomUUID();
+          await chrome.storage.local.set({
+            appid: newIdKey,
+          });
+        } catch (e) {
+          console.log("Could not generate id key");
+        } finally {
+          return;
+        }
+      }
 
-    static async translate(searchTerms){
+      let requestOptions = {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Basic " + btoa(`${appid}:vocab`),
+        },
+        body: JSON.stringify({
+          source_lang: target_language,
+          target_lang: output_language,
+          text: searchTerms.targetText,
+        }),
+        signal: AbortSignal.timeout(2500),
+      };
 
-        return new Promise(async(resolve, reject)=>{
+      // Ping backend server
+      try {
+        let apiResponse = await fetch(
+          "http://localhost:3000/translate",
+          requestOptions
+        );
 
-            console.log(searchTerms);
+        if (!apiResponse.ok) {
+          reject({ success: false });
+          return;
+        }
+        let response = await apiResponse.json();
 
-            let [target_language, output_language] = this.#changeLanguageValue(searchTerms.targetLanguage, searchTerms.outputLanguage);
-
-            let requestOptions = {
-
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json"
-                },
-                body: JSON.stringify({
-
-                    source_lang: target_language,
-                    target_lang: output_language,
-                    text: searchTerms.targetText
-
-                })
-            };
-
-            console.log(requestOptions)
-
-            try{
-                let apiResponse = await fetch('http://149.100.159.55:3000/api', requestOptions);
-                
-                let response = await apiResponse.json();
-
-                console.log(response)
-
-                //return translation which was nested in the retured response object
-                resolve(response.translations[0]);
-        
-            }catch (error) {
-                console.error(error);
-                reject(error);
-            }
-        })
-    }
-};
+        //return translation which was nested in the retured response object
+        resolve(response.translations[0]);
+      } catch (error) {
+        console.log(error);
+        reject(error);
+      }
+    });
+  }
+}

@@ -21,7 +21,6 @@ base_url, (string)
 
 //General functions
 
-
 // Wrap content in local scope to avoid global collisions
 
 //Set current tab in local storage
@@ -31,18 +30,16 @@ async function getCurrentTab(tabId) {
 }
 
 function updateContentScript() {
-
-  return new Promise(async(resolve, reject)=>{
-
-    try{    
-      const {currentTab} = await chrome.storage.local.get(["currentTab"])
+  return new Promise(async (resolve, reject) => {
+    try {
+      const { currentTab } = await chrome.storage.local.get(["currentTab"]);
       // Fetch all content
       const projects = await VocabDatabase.getAll("projects");
-    
+
       for (let project of projects) {
         allDetails.projects[project.id] = project;
       }
-    
+
       const p = await VocabDatabase.getAll("currentProject");
       allDetails.currentProject = p[0] || {
         id: "default",
@@ -52,9 +49,9 @@ function updateContentScript() {
         tags: "[]",
         entries: "{}",
       };
-    
+
       allDetails.tags = await VocabDatabase.getAll("tags");
-    
+
       //Content scripts load when tabs are updated
       await chrome.tabs.sendMessage(currentTab.id, {
         message: "set-content",
@@ -62,22 +59,16 @@ function updateContentScript() {
       });
 
       resolve({
-        success: true
-      })
-
-    }catch(e){
-
-      console.log(e)
+        success: true,
+      });
+    } catch (e) {
+      console.log(e);
 
       reject({
-        success: false
-      })
-
+        success: false,
+      });
     }
-   
-
-  })
- 
+  });
 }
 
 chrome.tabs.onActivated.addListener(async (result) => {
@@ -112,10 +103,21 @@ class MessageTemplate {
   }
 }
 
-chrome.runtime.onInstalled.addListener((details) => {
+chrome.runtime.onInstalled.addListener(async (details) => {
   //Open a new database on first install. Data will persist even after Extension is deleted
   if (details.reason === "install") {
     VocabDatabase.openDatabase();
+
+    // Gen id key
+    try {
+      // Key for access to backend services
+      const newIdKey = crypto.randomUUID();
+      await chrome.storage.local.set({
+        appid: newIdKey,
+      });
+    } catch (e) {
+      console.log("Could not generate id key");
+    }
   }
 });
 
@@ -194,9 +196,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         .then((res) => {
           sendResponse(true);
 
-          return updateContentScript()
+          return updateContentScript();
         })
-        .then((res)=>{
+        .then((res) => {
           // React to content script update
         })
         .catch((e) => {
@@ -208,8 +210,6 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   }
 });
 
-
-
 //Add new project details to local storage
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message.message === "add-project") {
@@ -217,7 +217,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then((result) => {
         sendResponse(result);
 
-        return updateContentScript()
+        return updateContentScript();
       })
       .then((res) => {
         // React to  content script update
@@ -241,9 +241,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
             success: true,
           });
 
-          return updateContentScript()
+          return updateContentScript();
         })
-        .then(()=>{
+        .then(() => {
           // React to content script update
         })
         .catch((e) => {
@@ -266,9 +266,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           success: true,
         });
 
-        return updateContentScript()
+        return updateContentScript();
       })
-      .then(()=>{
+      .then(() => {
         // React to content script update
       })
       .catch((e) => {
@@ -286,9 +286,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
       .then((res) => {
         sendResponse(true);
 
-        return updateContentScript()
+        return updateContentScript();
       })
-      .then(()=>{
+      .then(() => {
         // React to content script updat
       })
       .catch((e) => {
@@ -309,9 +309,9 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
           success: true,
         });
 
-        return updateContentScript()
+        return updateContentScript();
       })
-      .then(()=>{
+      .then(() => {
         // React to content script update
       })
       .catch((e) => {
@@ -330,9 +330,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
         sendResponse({
           success: true,
         });
-        return updateContentScript()
+        return updateContentScript();
       })
-      .then(()=>[
+      .then(() => [
         // React to cntetn script udate
       ])
       .catch((e) => {
@@ -424,9 +424,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then((res) => {
         sendResponse(res);
 
-        return updateContentScript()
+        return updateContentScript();
       })
-      .then(()=>{
+      .then(() => {
         // React to content script updaate
       })
       .catch((e) => {
@@ -443,45 +443,27 @@ const translationMessage = new MessageTemplate("translation-result", {
 });
 
 //Deeply translateButton
-chrome.runtime.onMessage.addListener(async (request) => {
-  if (
-    request.message === "translate" &&
-    request.details.targetView === "translation-view"
-  ) {
-    //Handle things like
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+  if (request.message === "translate") {
 
-    let translationTarget = request.details;
+    const searchTerms = {
+      targetLanguage: request.details.targetLanguage,
+      outputLanguage: request.details.outputLanguage,
+      targetText: request.details.targetText,
+    };
 
-    let translationResponse = await DeeplTranslate.translate(translationTarget);
+    DeeplTranslate.translate(searchTerms)
+      .then((res) => {
+        sendResponse({
+          success: true,
+        });
+      })
+      .catch((e) => {
+        sendResponse({
+          success: false,
+        });
+      });
 
-    //Handle network errors etc
-
-    //Encode message with response text
-    translationMessage.details.resultDetails = translationResponse.text;
-
-    //Send translation message to correct view
-    translationMessage.details.targetView = request.details.targetView;
-
-    chrome.runtime.sendMessage(translationMessage);
-  } else if (
-    request.message === "translate" &&
-    request.details.targetView === "content-view"
-  ) {
-    //Handle things like
-
-    let translationTarget = request.details;
-
-    let translationResponse = await DeeplTranslate.translate(translationTarget);
-
-    //Encode message with response text
-    translationMessage.details.resultDetails = translationResponse.text;
-
-    //Send translation message to correct view
-    translationMessage.details.targetView = request.details.targetView;
-
-    let currentIDRequest = await chrome.storage.local.get(["currentID"]);
-    let currentID = currentIDRequest["currentID"];
-
-    chrome.tabs.sendMessage(currentID, translationMessage);
+    return true;
   }
 });
