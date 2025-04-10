@@ -76,7 +76,7 @@ const routes = {
     const fetchOptions = {
       method: "POST",
       headers: {
-        Authorization: "DeepL-Auth-Key 807f8f90-d397-4278-bf9d-ce6cf863cb1e",
+        Authorization: `DeepL-Auth-Key ${process.env.API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
