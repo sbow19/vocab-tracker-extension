@@ -323,8 +323,16 @@ const allDetails = {
   tags: [],
 };
 
+let timeout;
+let blocked = false
 //Listen for load events on a tab page
 chrome.tabs.onUpdated.addListener(async (updatedTab, changeInfo, tab) => {
+
+  if(blocked) return
+  blocked = true;
+  timeout = setTimeout(()=>{
+    blocked = false
+  }, 200)
   let tabURL = await chrome.tabs.get(tab.id);
 
   // Set current URL
@@ -356,6 +364,8 @@ chrome.tabs.onUpdated.addListener(async (updatedTab, changeInfo, tab) => {
     load: "load content",
     data: allDetails,
   });
+
+  
 });
 
 let queue = false;

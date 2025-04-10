@@ -289,7 +289,6 @@ const translationPopupObject = new TranslationView(translationPopupInner, {
 });
 
 //Resources Search
-
 async function resourceSearch() {
   let popUpBubbleImage = Views.shadowDOMHost.getElementById(
     popupBubbleObject["elements"]["mainButton"]
@@ -321,11 +320,13 @@ function isJsonString(str) {
 let globals = {};
 let languages;
 
+let hasLoaded = false
 
 //The views need to be added before listeners can be added
 chrome.runtime.onMessage.addListener(async (request) => {
-  if (request.load === "load content" && !Views.hasLoaded) {
+  if (request.load === "load content" && !Views.hasLoaded && !hasLoaded) {
 
+    hasLoaded = true
     // Set content
     globals = request.data;
 
