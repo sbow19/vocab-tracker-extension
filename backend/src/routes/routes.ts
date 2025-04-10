@@ -104,7 +104,7 @@ const routes = {
       res.setHeader("Content-Type", "text/html");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.writeHead(500);
-      res.write("<strong> Unable to fetch translation</strong>");
+      res.write(response.status);
       res.end("\n");
       return;
     }
@@ -140,7 +140,7 @@ const routes = {
       res.setHeader("Content-Type", "text/html");
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.writeHead(500);
-      res.write("<strong> Unable to fetch transation</strong>");
+      res.write(response.status);
       res.end("\n");
     } else {
       const resBod = await response.json();
