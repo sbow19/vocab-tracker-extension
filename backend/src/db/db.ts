@@ -2,7 +2,7 @@ import { logger } from "../logger/logger";
 
 const sqlite3 = require("sqlite3");
 
-const db = new sqlite3.Database("vocab");
+const db = new sqlite3.Database("vocab.db");
 
 // Create the table if it does not exist
 db.run(
