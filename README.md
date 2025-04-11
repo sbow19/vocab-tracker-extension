@@ -1,4 +1,4 @@
-# Vocab Tracker Extension
+# Vocab Tracker Extension (Google Chrome only)
 
 ![Highlighted text from Globo - src: https://ge.globo.com/ce/futebol/libertadores/noticia/2025/04/11/libertadores-cbf-pedira-vitoria-do-fortaleza-a-conmebol-apos-caos-em-santiago.ghtml](https://raw.githubusercontent.com/sbow19/vocab-tracker-extension/main/Screenshot.png)
 
