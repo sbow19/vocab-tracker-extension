@@ -8,7 +8,23 @@ Save content in projects and add tags for better search flexibility.
 
 Leverage DeepL API to translate text.
 
-The extension is now available for free on the Chrome Web Store for Beta testing. 
+The extension is currently being reviewed before being published to the Chrome Web Store.
+
+To use the extension, follow these steps:
+
+1. Clone or download this repository to your local machine.
+```bash 
+git clone https://github.com/sbow19/vocab-tracker-extension.git 
+```
+2. Launch Google Chrome browser on your machine.
+
+3. In the Chrome browser, type chrome://extensions/ in the address bar and press Enter.
+
+4. At the top right of the Extensions page, toggle Developer mode to ON.
+
+5. Click the Load unpacked button. In the file picker that appears, navigate to the public folder in the cloned repository and select it.
+
+6. The extension will now be loaded in Chrome and should appear in your toolbar or Extensions page.
 
 
 ## Goals
