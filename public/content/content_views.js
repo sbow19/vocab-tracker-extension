@@ -528,7 +528,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
     function getTags(querySelector) {
       //This function will be used for other parts of the UI
 
-      let tagsNodeList = document.querySelectorAll(
+      let tagsNodeList = Views.shadowDOMHost.querySelectorAll(
         `${querySelector} > li .vocab-tag-inner`
       );
 
@@ -740,8 +740,6 @@ chrome.runtime.onMessage.addListener(async (request) => {
     Views.shadowDOMHost
       .getElementById("translation-popup")
       .addEventListener("dragstart", (ev) => {
-        console.log(ev);
-
         ev.dataTransfer.effectAllowed = "move";
 
         ev.dataTransfer.setData("text/plain", ev.target.id);
@@ -817,6 +815,7 @@ chrome.runtime.onMessage.addListener(async (request) => {
     });
 
     let timer;
+
 
     function startTimer() {
       timer = setTimeout(async () => {
@@ -918,6 +917,10 @@ sheet.replace(`
 
 .vocab-title{
     font-family: var(--custom-font-title);
+}
+
+* {
+  font-family: var(--custom-font-title)
 }
 
 .vocab-tags-selected-list{
@@ -1048,7 +1051,17 @@ sheet.replace(`
     justify-content: left;
 }
 
+.translation-input-text-wrapper {
+  padding: 0 5px
+}
 
+.translation-output-text-wrapper {
+  padding: 0 5px
+}
+
+strong {
+  font-size: 12px
+}
 
 .translation-parameters-wrapper{
     display: flex;
@@ -1083,8 +1096,12 @@ sheet.replace(`
   justify-content: center;
   width: 100%;
   font-weight: 600;
-  text-align:center
+  text-align:center;
+  font-size: 12px
+
 }
+
+
 
 .translation-parameter-language-wrapper{
     display:flex;
@@ -1136,12 +1153,16 @@ sheet.replace(`
     align-items: center;
 }
 
+.translation-tagset-title-wrapper{
+    font-size: 12px
+}
+
 .translation-tagset-selected-wrapper{
-    height:45%;
-    max-height:45%;
+    min-height:100%;
+    max-height: 100%
     display:flex;
     flex-direction: column;
-    margin:10px;
+    margin:5px;
     background-color: white;
     overflow: auto;
 }
@@ -1195,6 +1216,18 @@ sheet.replace(`
     height:20px;
     width:20px;
     z-index: 3;
+}
+
+.vocab-tag-outer{
+  margin: 5px;
+  font-size: 12px
+}
+
+.vocab-tag-delete{
+  display: inline-block
+}
+.vocab-tag-inner{
+  display: inline-block
 }
 
 `);

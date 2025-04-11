@@ -8,6 +8,12 @@ async function getCurrentTab(tabId) {
   return tab;
 }
 
+const allDetails = {
+  projects: {},
+  currentProject: {},
+  tags: [],
+};
+
 function updateContentScript() {
   return new Promise(async (resolve, reject) => {
     try {
@@ -15,9 +21,10 @@ function updateContentScript() {
       // Fetch all content
       const projects = await VocabDatabase.getAll("projects");
 
-      for (let project of projects) {
-        allDetails.projects[project.id] = project;
-      }
+      allDetails.projects = {}
+      projects.forEach((project)=>{
+        allDetails.projects[project.id] = project
+      })
 
       const p = await VocabDatabase.getAll("currentProject");
       allDetails.currentProject = p[0] || {
@@ -194,8 +201,10 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
       .then((res) => {
         // React to  content script update
       })
-      .catch(() => {
-        sendResponse(result);
+      .catch((e) => {
+        sendResponse({
+          success: false
+        });
       });
 
     // Return true to indicate that the service worker event is asychronous
@@ -317,14 +326,9 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   }
 });
 
-const allDetails = {
-  projects: {},
-  currentProject: {},
-  tags: [],
-};
 
-let timeout;
 let blocked = false
+let timeout
 //Listen for load events on a tab page
 chrome.tabs.onUpdated.addListener(async (updatedTab, changeInfo, tab) => {
 

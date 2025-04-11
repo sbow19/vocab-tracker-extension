@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Vocab Tracker",
-  "version": "0.1.0",
+  "version": "0.0.1",
 
   "icons": {
     "16": "assets/translation-icon-16.png",
@@ -32,7 +32,6 @@
       "resources": ["assets/translation-icon.png"],
       "matches": ["<all_urls>"]
     }
-  ],
+  ]
 
-  "host_permissions": ["http://localhost:3000/*"]
 }

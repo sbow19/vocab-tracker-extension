@@ -282,7 +282,16 @@ currentProjectAddTagButton.addEventListener("click", async () => {
   //If another element has the tag, then another tag will not be appeneded
   const tagData = JSON.parse(currentProjectTagsDropdown.value);
 
+  // Cannot add tags to a default project 
   if(Globals.currentProject.id === "default") return
+
+  // Check if current project already has the tag
+  if(Globals.currentProject.tags.some((oldTag)=>{
+    if(oldTag.id === tagData.id) return true
+  })) {
+    return
+  }
+
   // add tag to currentProject
   const addedTags = [...Globals.currentProject.tags, tagData]
 

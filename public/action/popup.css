@@ -17,7 +17,7 @@
 }
 
 select {
-  min-width: 80px;
+  min-width: 100px;
   max-width: 100px;
 
   height: 20px;
@@ -44,9 +44,20 @@ select {
   list-style: none;
   padding: 0;
   margin: 0;
-  font-size: 9px;
+  font-size: 12px;
   display: flex;
   flex-direction: column;
+}
+
+.vocab-tag-outer{
+  margin: 5px
+}
+
+.vocab-tag-delete{
+  display: inline-block
+}
+.vocab-tag-inner{
+  display: inline-block
 }
 
 .vocab-select {
@@ -75,8 +86,6 @@ select {
   height: var(--extension-height);
   width: var(--extension-width);
   border: solid 2px;
-  border-radius: 10px;
-  margin: 10px;
   padding: 10px;
   display: flex;
   flex-direction: column;
@@ -179,9 +188,10 @@ h2.title {
 .current-project-select-wrapper {
   border: var(--placeholder-border);
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   height: 35px;
+  padding: 0 5px
 }
 
 .current-project-language-set-wrapper {
@@ -196,22 +206,26 @@ h2.title {
 
 .current-project-target-language {
   display: flex;
-  justify-content: space-around;
-  padding: 0 3px;
+  justify-content: space-between;
+  padding: 0 5px;
 }
 
 .current-project-output-language {
   display: flex;
-  justify-content: space-around;
-  padding: 0 3px;
+  justify-content: space-between;
+  padding: 0 5px;
 }
 
 .current-project-tagset-wrapper {
-  border: var(--placeholder-border);
   max-height: 85px;
   min-height: 85px;
-
   display: flex;
+}
+
+
+.current-project-tagset-title-wrapper {
+  text-align: left;
+  width: 100%;
 }
 
 .current-project-tagset-title-dropdown-wrapper {
@@ -220,8 +234,8 @@ h2.title {
   flex-direction: column;
   justify-content: space-evenly;
   align-items: center;
-  border: var(--placeholder-border);
-  min-width: 40%;
+  padding: 0 5px
+
 }
 
 .current-project-tagset-selected-wrapper {
@@ -229,6 +243,7 @@ h2.title {
   flex-direction: column;
   border: var(--placeholder-border);
   margin: 10px;
+  margin-right: 5px;
   width: 80%;
   background-color: white;
 }
@@ -330,7 +345,7 @@ h2.title {
   display: flex;
   border: var(--placeholder-border);
   list-style: none;
-  padding: 0;
+  padding: 0 5px;
   margin: 0;
   width: 100%;
   max-height: 100%;
@@ -357,7 +372,9 @@ h2.title {
   border: var(--placeholder-border);
   display: flex;
   flex-direction: column;
+  justify-content: flex-end;
   align-items: center;
+  row-gap: 5px;
   flex: 1;
 }
 
@@ -480,7 +497,11 @@ h2.title {
   justify-content: space-evenly;
   height: 70%;
   margin-top: 10px;
-  margin-right: 5px;
+  padding: 0 5px;
+}
+
+.translation-input-output-wrapper-inner strong, .translation-input-output-wrapper-inner select{
+  margin-bottom: 5px
 }
 
 .translation-input-output-wrapper textarea {
@@ -541,6 +562,7 @@ h2.title {
   display: flex;
   border: var(--placeholder-border);
   flex: 1;
+  padding: 0 5px
 }
 
 .translation-parameter-project-wrapper > div {
@@ -554,11 +576,12 @@ h2.title {
 
 .translation-parameter-project-title-wrapper {
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
   align-items: center;
   width: 100%;
-  text-align: center;
+  text-align: left;
 }
+
 
 .translation-parameter-save-wrapper {
   display: flex;
@@ -580,6 +603,7 @@ h2.title {
 .translation-tagset-title-dropdown-wrapper {
   display: flex;
   flex-direction: column;
+  row-gap: 5px;
   align-items: center;
 }
 
@@ -818,11 +842,11 @@ h2.title {
 }
 .add-project-name-title-wrapper {
   display: flex;
-  border: var(--placeholder-border);
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   width: 125px;
+  padding: 0 5px
 }
 
 .add-project-name-input-wrapper {
@@ -840,11 +864,11 @@ h2.title {
 
 .add-project-language-title-wrapper {
   display: flex;
-  border: var(--placeholder-border);
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
   min-width: 125px;
+  padding: 0 5px
 }
 
 .add-project-name-input {
@@ -854,14 +878,16 @@ h2.title {
 .add-project-language-set-wrapper {
   display: flex;
   align-items: center;
-  justify-content: space-around;
+  justify-content: flex-start;
   width: 100%;
+  column-gap: 20px
 }
 
 .add-project-language-set-wrapper > div {
   display: flex;
   align-items: center;
   flex-direction: column;
+  row-gap: 5px;
 }
 
 .add-project-language-select {
@@ -882,7 +908,8 @@ h2.title {
   border: var(--placeholder-border);
   flex-direction: column;
   justify-content: center;
-  align-items: center;
+  align-items: flex-start;
+  padding: 0 5px;
   width: 125px;
 }
 
@@ -898,6 +925,14 @@ h2.title {
   width: 50%;
 }
 
+.add-project-tags-add-wrapper{
+  width: 100px;
+  margin-left: 35px
+
+}
+.add-project-tags-add-wrapper > button{
+}
+
 .vocab-tags-selected-background {
   max-height: 100%;
   overflow: auto;
@@ -908,7 +943,7 @@ h2.title {
   border: var(--placeholder-border);
   flex-direction: column;
   justify-content: space-around;
-  align-items: center;
+  align-items: flex-start;
   flex: 2;
 }
 

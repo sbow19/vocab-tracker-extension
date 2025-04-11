@@ -3,3 +3,7 @@
 /logs
 *.db
 /test-scripts
+
+*.zip
+*.crx
+*.pem

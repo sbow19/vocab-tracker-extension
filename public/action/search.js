@@ -22,7 +22,7 @@ searchAddTagButton.addEventListener("click", () => {
   //If another element has the tag, then another tag will not be appeneded
 
   const searchTagValue = JSON.parse(searchTagsDropdown.value);
-  if (document.getElementById(`search-${searchTagsDropdown.name}-tag`)) return;
+  if (document.getElementById(`search-${searchTagValue.name}-tag`)) return;
 
   let newTag = document.createElement("li");
   //Create tag class
@@ -192,7 +192,7 @@ export function setTable(results) {
     let deleteButton = document.createElement("button");
     deleteButton.classList.add("vocab-button");
     deleteButton.innerText = "Delete";
-    deleteButton.style.fontSize = "8px";
+    deleteButton.style.fontSize = "12px";
     deleteButton.setAttribute("id", `result-view-delete-button-${resultTally}`);
 
     deleteWrapper.appendChild(deleteButton);

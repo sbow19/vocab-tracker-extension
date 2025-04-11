@@ -128,6 +128,7 @@ export class VocabDatabase {
         projectToSet = project;
       }
 
+
       const setRequest = store.put(projectToSet, 0);
 
       setRequest.onsuccess = (ev) => {
@@ -318,7 +319,7 @@ export class VocabDatabase {
               currentProjectRequest.onsuccess = (ev) => {
                 const result = ev.target.result;
 
-                if (result.id !== data) {
+                if (!result || (result.id !== data)) {
                   resolve(ev);
                   tx.commit();
                   return;
@@ -488,7 +489,7 @@ export class VocabDatabase {
                   );
 
                   const currentStorePut =
-                    currentProjectStore.put(currentProject);
+                    currentProjectStore.put(currentProject, 0);
                   currentStorePut.onsuccess = (ev) => {
                     resolve(ev);
                     tx.commit();
